@@ -258,9 +258,32 @@ The EDS Data Group contains at least one of the following groups, but may also c
 
 **Group Name** | **Mandatory** | **Comment**
 --- | --- | ---
-Window Integral | | Contains one dataset for each element and X-ray line analysed (e.g. Al Ka1). Each value (stored as H5T_NATIVE_FLOAT) corresponds to the integral of the raw X-ray counts over an energy window divided by the live time. The units are counts per second. The dataset has the attributes **Atomic Number** (H5T_NATIVE_INT32) and **X-ray Line** (H5T_STRING)
-Peak Area | | Contains one dataset for each element and X-ray line analysed (e.g. Al K series). Each value (stored as H5T_NATIVE_FLOAT) corresponds to the fitted peak area divided by the live time. The units are counts per second. The dataset has the attributes **Atomic Number** (H5T_NATIVE_INT32) and **X-ray Line** (H5T_STRING)
-Composition | | Contains one dataset for each element analysed (e.g. Al). Each value (stored as H5T_NATIVE_FLOAT) corresponds to the concentration, expressed in wt%. The dataset has the attribute **Atomic Number** (H5T_NATIVE_INT32).
+Window Integral | | Contains one dataset for each element and X-ray line analysed (e.g. Al Ka1). Each value (stored as H5T_NATIVE_FLOAT) corresponds to the integral of the raw X-ray counts over an energy window divided by the live time. The units are counts per second.
+Peak Area | | Contains one dataset for each element and X-ray line analysed (e.g. Al K series). Each value (stored as H5T_NATIVE_FLOAT) corresponds to the fitted peak area divided by the live time. The units are counts per second.
+Composition | | Contains one dataset for each element analysed (e.g. Al). Each value (stored as H5T_NATIVE_FLOAT) corresponds to the concentration, expressed in wt%.
+
+Each dataset in the Window Integral and Peak Area groups has the following attributes.
+
+**Attribute Name** | **Mandatory** | **HDF5 Type** | **Dimension (row, column)** | **Comment**
+--- | --- | --- | --- | ---
+Atomic Number | yes | H5T_NATIVE_INT32 | (1, 1) | Atomic number of analysed element
+X-ray Line | yes | H5T_STRING | (1, 1) | X-ray line analysed (e.g. Ka1, K series)
+Lower Value | yes | H5T_NATIVE_FLOAT | (1, 1) | Lower value of the palette associated with this dataset (in counts per second)
+Lower Color | yes | H5T_NATIVE_UINT8 | (1, 3) | Three columns for the RGB values of the color associated with the lower value
+Upper Value | yes | H5T_NATIVE_FLOAT | (1, 1) | Upper value of the palette associated with this dataset (in counts per second)
+Upper Color | yes | H5T_NATIVE_UINT8 | (1, 3) | Three columns for the RGB values of the color associated with the upper value
+Gamma | yes | H5T_NATIVE_FLOAT | (1, 1) | One over the exponent of the [gamma correction](https://en.wikipedia.org/wiki/Gamma_correction) used to create the palette associated with this dataset: I' = I ^ (1 / gamma), where I is the intensity and I', the corrected intensity
+
+Each dataset in the Composition group has the following attributes:
+
+**Attribute Name** | **Mandatory** | **HDF5 Type** | **Dimension (row, column)** | **Comment**
+--- | --- | --- | --- | ---
+Atomic Number | yes | H5T_NATIVE_INT32 | (1, 1) | Atomic number of analysed element
+Lower Value | yes | H5T_NATIVE_FLOAT | (1, 1) | Lower value of the palette associated with this dataset (in wt%)
+Lower Color | yes | H5T_NATIVE_UINT8 | (1, 3) | Three columns for the RGB values of the color associated with the lower value
+Upper Value | yes | H5T_NATIVE_FLOAT | (1, 1) | Upper value of the palette associated with this dataset (in wt%)
+Upper Color | yes | H5T_NATIVE_UINT8 | (1, 3) | Three columns for the RGB values of the color associated with the upper value
+Gamma | yes | H5T_NATIVE_FLOAT | (1, 1) | One over the exponent of the [gamma correction](https://en.wikipedia.org/wiki/Gamma_correction) used to create the palette associated with this dataset: I' = I ^ (1 / gamma), where I is the intensity and I', the corrected intensity
 
 The EDS Data Group contains the following datasets.
 
