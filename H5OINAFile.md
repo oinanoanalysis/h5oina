@@ -230,6 +230,8 @@ Laue Group | yes | H5T_NATIVE_INT32 | (1, 1) | Laue group index. The attribute *
 Space Group | | H5T_NATIVE_INT32 | (1, 1) | Space group index. The attribute **Symbol** contains the string representation, for example _P m -3 m_.
 Number Reflectors | | H5T_NATIVE_INT32 | (1, 1) | Number of reflectors
 Color | | H5T_NATIVE_UINT8 | (1, 3) | Three columns for the RGB values
+Database Id | | H5T_NATIVE_UINT8 | (1, 1) | Id of the database where this phase was taken from
+Phase Id | | H5T_NATIVE_UINT8 | (1, 1) | Id of the phase in the database
 
 #### <a name="coordinate-systems"></a> Definition of Coordinate Systems
 
