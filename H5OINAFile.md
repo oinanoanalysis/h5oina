@@ -171,8 +171,8 @@ The EBSD Data Group contains the following datasets.
 **Dataset Name** | **Mandatory** | **HDF5 Type** | **Dimension (row, column)** | **Comment**
 --- | --- | --- | --- | ---
 Phase | yes | H5T_NATIVE_INT32 | (size, 1) | Index of phase, 0 if not indexed
-X | | H5T_NATIVE_FLOAT | (size, 1) | X position of each pixel in micrometers
-Y | | H5T_NATIVE_FLOAT | (size, 1) | Y position of each pixel in micrometers
+X | | H5T_NATIVE_FLOAT | (size, 1) | X position of each pixel in micrometers (origin: top left corner)
+Y | | H5T_NATIVE_FLOAT | (size, 1) | Y position of each pixel in micrometers (origin: top left corner)
 Bands | | H5T_NATIVE_INT32 | (size, 1) | Number of bands positively indexed
 Error | | H5T_NATIVE_INT32 | (size, 1) | Error code. Some of these codes are historical and no longer apply. NotAnalyzed=0, Success=1, NoSolution=2, LowBandContrast=3, LowBandSlope=4, HighMAD=5, UnexpectedError=6, Replaced=7
 Euler | yes | H5T_NATIVE_FLOAT | (size, 3) | Orientation of Crystal (CS2) to Sample-Surface (CS1). See [Definition of Coordinate Systems](#coordinate-systems) for more information.
@@ -295,8 +295,8 @@ The EDS Data Group contains the following datasets.
 
 **Dataset Name** | **Mandatory** | **HDF5 Type** | **Dimension (row, column)** | **Comment**
 --- | --- | --- | --- | ---
-X | | H5T_NATIVE_FLOAT | (size, 1) | X position of each pixel in micrometers
-Y | | H5T_NATIVE_FLOAT | (size, 1) | Y position of each pixel in micrometers
+X | | H5T_NATIVE_FLOAT | (size, 1) | X position of each pixel in micrometers (origin: top left corner)
+Y | | H5T_NATIVE_FLOAT | (size, 1) | Y position of each pixel in micrometers (origin: top left corner)
 Live Time | yes | H5T_NATIVE_FLOAT | (size, 1) | In seconds
 Real Time | | H5T_NATIVE_FLOAT | (size, 1) | In seconds
 
