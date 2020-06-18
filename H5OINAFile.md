@@ -165,7 +165,7 @@ Rotation | | H5T_NATIVE_FLOAT | (1, 1) | Rotation angle of the stage in radians
 
 #### <a name="ebsd-data"></a> Data Group Specification
 
-The number of rows (first dimension of array) of all datasets is equal to the size of the acquisition (i.e. width x height).
+The number of rows (first dimension of array) of all datasets is equal to the size of the acquisition. For example, width x height for maps and length for line scans.
 In other words, it is equal to the total number of pixels in the acquisition.
 
 The EBSD Data Group contains the following datasets.
@@ -261,7 +261,7 @@ The absolute crystal orientation is given by the orientation of the crystal (CS2
 
 #### <a name="eds-data"></a> Data Group Specification ####
 
-The number of rows (first dimension of array) of all datasets is equal to the size of the acquisition (i.e. width x height).
+The number of rows (first dimension of array) of all datasets is equal to the size of the acquisition. For example, width x height for maps and length for line scans.
 In other words, it is equal to the total number of pixels in the acquisition.
 
 The EDS Data Group contains at least one of the following groups, but may also contain two or all three.
