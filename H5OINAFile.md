@@ -4,6 +4,7 @@ Version | Release AZtec Version
 --- | ---
 1.0 | AZtec 4.2
 2.0 | AZtec 4.3
+3.0 | ?
 
 This document details the specification for the Oxford Instruments NanoAnalysis HDF5 file format (_.h5oina_).
 This file format can be used to export electron images, EDS and EBSD acquisitions as well as combined EDS/EBSD acquisitions.
@@ -98,7 +99,7 @@ The techniques can be, but not restrictive to:
 --- | --- | ---
 [EBSD](#ebsd) | | Contains one EBSD acquisition
 [EDS](#eds) | | Contains one EDS acquisition
-[Electron Image](#electronimage) | | Contains one EDS acquisition
+[Electron Image](#electronimage) | | Contains electron images associated with the EDS and/or EBSD acquisition
 [Data Processing](#dataprocessing) | | Contains results created by data processing software, such as AZtec Crystal
 
 ### <a name="technique"></a> Technique Group Specification
@@ -167,11 +168,11 @@ The EBSD Data Group contains the following datasets.
 **Dataset Name** | **Mandatory** | **HDF5 Type** | **Dimension (row, column)** | **Comment**
 --- | --- | --- | --- | ---
 Phase | yes | H5T_NATIVE_INT32 | (size, 1) | Index of phase, 0 if not indexed
-X | | H5T_NATIVE_FLOAT | (size, 1) | X position in micrometers
-Y | | H5T_NATIVE_FLOAT | (size, 1) | Y position in micrometers
+X | | H5T_NATIVE_FLOAT | (size, 1) | X position of each pixel in micrometers
+Y | | H5T_NATIVE_FLOAT | (size, 1) | Y position of each pixel in micrometers
 Bands | | H5T_NATIVE_INT32 | (size, 1) | Number of bands positively indexed
 Error | | H5T_NATIVE_INT32 | (size, 1) | Error code. Some of these codes are historical and no longer apply. NotAnalyzed=0, Success=1, NoSolution=2, LowBandContrast=3, LowBandSlope=4, HighMAD=5, UnexpectedError=6, Replaced=7
-Euler | yes | H5T_NATIVE_FLOAT | (size, 3) | Orientation of Crystal (CS2) to Sample-Surface (CS1). See [Definition of Coordinate Systems](#coordinate-system) for more information.
+Euler | yes | H5T_NATIVE_FLOAT | (size, 3) | Orientation of Crystal (CS2) to Sample-Surface (CS1). See [Definition of Coordinate Systems](#coordinate-systems) for more information.
 Mean Angular Deviation | | H5T_NATIVE_FLOAT | (size, 1) | In radians
 Band Contrast | | H5T_NATIVE_INT32 | (size, 1) |
 Band Slope | | H5T_NATIVE_INT32 | (size, 1) |
@@ -194,7 +195,7 @@ Apart from the [common header specification](#common-header), the EBSD Header Gr
 
 **Dataset Name** | **Mandatory** | **HDF5 Type** | **Dimension (row, column)** | **Comment**
 --- | --- | --- | --- | ---
-Detector Orientation Euler | | H5T_NATIVE_FLOAT | (1, 3) | Orientation of Detector (CS3) to Microscope (CSm). See [Definition of Coordinate Systems](#coordinate-system) for more information.
+Detector Orientation Euler | | H5T_NATIVE_FLOAT | (1, 3) | Orientation of Detector (CS3) to Microscope (CSm). See [Definition of Coordinate Systems](#coordinate-systems) for more information.
 Detector Insertion Distance | | H5T_NATIVE_FLOAT | (1, 1) | Insertion distance of EBSD detector in millimeters
 Lens Distortion | | H5T_NATIVE_FLOAT | (1, 1) |
 Lens Field View | | H5T_NATIVE_FLOAT | (1, 1) | In millimeters
@@ -213,7 +214,7 @@ Indexing Mode | | H5T_STRING | (1, 1) | Either _Optimized - EBSD_, _Optimized - 
 Hit Rate | | H5T_NATIVE_FLOAT | (1, 1) | Hit rate, percentage of indexed pixels
 Acquisition Time | | H5T_NATIVE_FLOAT | (1, 1) | In seconds
 Acquisition Speed | | H5T_NATIVE_FLOAT | (1, 1) | In pixels per second
-Specimen Orientation Euler | yes | H5T_NATIVE_FLOAT | (1, 3) | Orientation of Sample-Surface (CS1) to Sample-Primary (CS0). See [Definition of Coordinate Systems](#coordinate-system) for more information.
+Specimen Orientation Euler | yes | H5T_NATIVE_FLOAT | (1, 3) | Orientation of Sample-Surface (CS1) to Sample-Primary (CS0). See [Definition of Coordinate Systems](#coordinate-systems) for more information.
 Scanning Rotation Angle | yes | H5T_NATIVE_FLOAT | (1, 1) | Angle between the specimen tilt axis and the scanning tilt axis in radians. If NaN, the angle is unknown.
 
 ##### <a name="ebsd-phase"></a> Phase Group Specification
@@ -291,8 +292,8 @@ The EDS Data Group contains the following datasets.
 
 **Dataset Name** | **Mandatory** | **HDF5 Type** | **Dimension (row, column)** | **Comment**
 --- | --- | --- | --- | ---
-X | | H5T_NATIVE_FLOAT | (size, 1) | X position in micrometers
-Y | | H5T_NATIVE_FLOAT | (size, 1) | Y position in micrometers
+X | | H5T_NATIVE_FLOAT | (size, 1) | X position of each pixel in micrometers
+Y | | H5T_NATIVE_FLOAT | (size, 1) | Y position of each pixel in micrometers
 Live Time | yes | H5T_NATIVE_FLOAT | (size, 1) | In seconds
 Real Time | | H5T_NATIVE_FLOAT | (size, 1) | In seconds
 
@@ -362,7 +363,7 @@ The Data Processing Data Group contains the following datasets, which is a subse
 **Dataset Name** | **Mandatory** | **HDF5 Type** | **Dimension (row, column)** | **Comment**
 --- | --- | --- | --- | ---
 Phase | yes | H5T_NATIVE_INT32 | (size, 1) | Index of phase, 0 if not indexed
-Euler | yes | H5T_NATIVE_FLOAT | (size, 3) | Orientation of Crystal (CS2) to Sample-Surface (CS1). See [Definition of Coordinate Systems](#coordinate-system) for more information.
+Euler | yes | H5T_NATIVE_FLOAT | (size, 3) | Orientation of Crystal (CS2) to Sample-Surface (CS1). See [Definition of Coordinate Systems](#coordinate-systems) for more information.
 Mean Angular Deviation | | H5T_NATIVE_FLOAT | (size, 1) | In radians
 
 #### <a name="dataprocessing-header"></a> Header Group Specification ####
