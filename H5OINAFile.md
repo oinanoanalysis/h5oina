@@ -50,9 +50,9 @@ Here is how the AZtec data are exported to _.h5oina_.
 An AZtec project is normally structured using _Specimen_ and _Site_.
 A _Site_ may contain one or more acquisitions like ED spectra, ED mappings, EDS mappings, EBSD mappings, electron images, etc.
 If the user decides to export the whole project to _.h5oina_, an _.h5oina_ file would be created for each acquisition.
-For instance, the following project would be exported as two _.h5oina_ files: one for _Map Analysis 1_ and another for _Map Analysis 2_.
-Note that the EDS and EBSD data of the _Map Analysis 1_ are stored in the same _.h5oina_ file.
-_Electron Image 1_ and _Electron Image 2_ are stored in the _.h5oina_ file of both _Map Analysis 1_ and _Map Analysis 2_.
+For instance, the following project would be exported as three _.h5oina_ files: one for _Map Data 1_, another for _Map Data 2_ and a final one for _Line Data 1_.
+Note that the EDS and EBSD data of the _Map Data 1_ are stored in the same _.h5oina_ file.
+_Electron Image 1_ and _Electron Image 2_ are stored in all the _.h5oina_ files.
 
 AZtec project:
 
@@ -61,16 +61,19 @@ AZtec project:
     - Site 1
       - Electron Image 1
       - Electron Image 2
-      - Map Analysis 1
+      - Map Data 1
         - EBSD Data
         - EDS Data
-      - Map Analysis 2
+      - Map Data 2
         - EBSD Data
+      - Line Data 1
+        - EDS Data
 
 _.h5oina_ files:
 
-- Project 1-Specimen 1-Site 1-Map Analysis 1.h5oina
-- Project 1-Specimen 1-Site 1-Map Analysis 2.h5oina
+- Project 1-Specimen 1-Site 1-Map Data 1.h5oina
+- Project 1-Specimen 1-Site 1-Map Data 2.h5oina
+- Project 1-Specimen 1-Site 1-Line Data 1.h5oina
 
 ## File Layout
 
@@ -138,10 +141,10 @@ Beam Voltage | | H5T_NATIVE_FLOAT | (1, 1) | In kilovolts
 Working Distance | | H5T_NATIVE_FLOAT | (1, 1) | Working distance of microscope (in millimeters)
 Tilt Angle | | H5T_NATIVE_FLOAT | (1, 1) | Tilt angle of sample (either from stage tilt or pre-tilted holder)
 Tilt Axis | | H5T_NATIVE_FLOAT | (1, 1) | 0 for x-axis, &pi;/2 for y-axis
-X Cells | yes | H5T_NATIVE_INT32 | (1, 1) | Width of map in pixels
-Y Cells | yes | H5T_NATIVE_INT32 | (1, 1) | Height of map in pixels
-X Step | yes | H5T_NATIVE_FLOAT | (1, 1) | Step size along x-axis in micrometers
-Y Step | yes | H5T_NATIVE_FLOAT | (1, 1) | Step size along y-axis in micrometers
+X Cells | yes | H5T_NATIVE_INT32 | (1, 1) | Map: Width in pixels. Line scan: Length in pixels.
+Y Cells | yes | H5T_NATIVE_INT32 | (1, 1) | Map: Height in pixels. Line scan: Always set to 1.
+X Step | yes | H5T_NATIVE_FLOAT | (1, 1) | Map: Step size along x-axis in micrometers. Line scan: step size along the line scan in micrometers.
+Y Step | yes | H5T_NATIVE_FLOAT | (1, 1) | Map: Step size along y-axis in micrometers. Line scan: Always set to 0.
 Drift Correction | | H5T_NATIVE_HBOOL | (1, 1) | Whether drift correction was used during this acquisition
 
 #### <a name="stage-position"></a> Stage Position Group Specification
@@ -393,10 +396,10 @@ The Header group always contains the following mandatory datasets:
 **Dataset Name** | **Mandatory** | **HDF5 Type** | **Dimension (row, column)** | **Comment**
 --- | --- | --- | --- | ---
 Analysis Type | yes | H5T_STRING | (1, 1) | Type of the analysis, currently: Grain Detection, Kernel Average Misorientation, Inverse Pole Figure
-X Cells | yes | H5T_NATIVE_INT32 | (1, 1) | Width of map in pixels
-Y Cells | yes | H5T_NATIVE_INT32 | (1, 1) | Height of map in pixels
-X Step | yes | H5T_NATIVE_FLOAT | (1, 1) | Step size along x-axis in micrometers
-Y Step | yes | H5T_NATIVE_FLOAT | (1, 1) | Step size along y-axis in micrometers
+X Cells | yes | H5T_NATIVE_INT32 | (1, 1) | Map: Width in pixels. Line scan: Length in pixels.
+Y Cells | yes | H5T_NATIVE_INT32 | (1, 1) | Map: Height in pixels. Line scan: Always set to 1.
+X Step | yes | H5T_NATIVE_FLOAT | (1, 1) | Map: Step size along x-axis in micrometers. Line scan: step size along the line scan in micrometers.
+Y Step | yes | H5T_NATIVE_FLOAT | (1, 1) | Map: Step size along y-axis in micrometers. Line scan: Always set to 0.
 
 Here are some examples of type of analysis and their parameters.
 
