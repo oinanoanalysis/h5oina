@@ -146,6 +146,8 @@ Y Cells | yes | H5T_NATIVE_INT32 | (1, 1) | Map: Height in pixels. Line scan: Al
 X Step | yes | H5T_NATIVE_FLOAT | (1, 1) | Map: Step size along x-axis in micrometers. Line scan: step size along the line scan in micrometers.
 Y Step | yes | H5T_NATIVE_FLOAT | (1, 1) | Map: Step size along y-axis in micrometers. Line scan: Always set to 0.
 Drift Correction | | H5T_NATIVE_HBOOL | (1, 1) | Whether drift correction was used during this acquisition
+Relative Offset | | H5T_NATIVE_FLOAT | (1, 2) | Top-left corner of the acquisition (map or line scan) in the electron image. The coordinates (X, Y) are normalized by the __width__ of the electron image. 
+Relative Size | | H5T_NATIVE_FLOAT | (1, 2) | Size of the acquisition (map or line scan) in the electron image. The size (width, height) is normalized by the __width__ of the electron image.
 
 #### <a name="stage-position"></a> Stage Position Group Specification
 
