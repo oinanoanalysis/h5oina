@@ -43,6 +43,7 @@ It is using the [Hierarchical Data Format 5](http://www.hdfgroup.org) file forma
 - All datasets and attributes of type H5T_STRING are encoded as UTF8 (see [H5T_CSET_UTF8](https://confluence.hdfgroup.org/display/HDF5/H5T_SET_CSET)).
 - Each dataset defining color(s) contains three columns for the red, green and blue components.
 - An _.h5oina_ file may not contain all the datasets specified in this specification. Different hardware and acquisition conditions mean that some parameters are not available, and therefore cannot be exported. The mandatory datasets are indicated below.
+- In the Data datasets, the value of pixels outside the acquisition area is set to `NaN`.
 
 ## <a name="data-tree"></a> AZtec Project Data Tree
 
@@ -141,13 +142,15 @@ Beam Voltage | | H5T_NATIVE_FLOAT | (1, 1) | In kilovolts
 Working Distance | | H5T_NATIVE_FLOAT | (1, 1) | Working distance of microscope (in millimeters)
 Tilt Angle | | H5T_NATIVE_FLOAT | (1, 1) | Tilt angle of sample (either from stage tilt or pre-tilted holder)
 Tilt Axis | | H5T_NATIVE_FLOAT | (1, 1) | 0 for x-axis, &pi;/2 for y-axis
-X Cells | yes | H5T_NATIVE_INT32 | (1, 1) | Map: Width in pixels. Line scan: Length in pixels.
-Y Cells | yes | H5T_NATIVE_INT32 | (1, 1) | Map: Height in pixels. Line scan: Always set to 1.
-X Step | yes | H5T_NATIVE_FLOAT | (1, 1) | Map: Step size along x-axis in micrometers. Line scan: step size along the line scan in micrometers.
-Y Step | yes | H5T_NATIVE_FLOAT | (1, 1) | Map: Step size along y-axis in micrometers. Line scan: Always set to 0.
+X Cells | yes | H5T_NATIVE_INT32 | (1, 1) | Map: Width in pixels.<br>Line scan: Length in pixels.
+Y Cells | yes | H5T_NATIVE_INT32 | (1, 1) | Map: Height in pixels.<br>Line scan: Always set to 1.
+X Step | yes | H5T_NATIVE_FLOAT | (1, 1) | Map: Step size along x-axis in micrometers.<br>Line scan: step size along the line scan in micrometers.
+Y Step | yes | H5T_NATIVE_FLOAT | (1, 1) | Map: Step size along y-axis in micrometers.<br>Line scan: Always set to 0.
 Drift Correction | | H5T_NATIVE_HBOOL | (1, 1) | Whether drift correction was used during this acquisition
-Relative Offset | | H5T_NATIVE_FLOAT | (1, 2) | Top-left corner of the acquisition (map or line scan) in the electron image. The coordinates (X, Y) are normalized by the __width__ of the electron image. 
-Relative Size | | H5T_NATIVE_FLOAT | (1, 2) | Size of the acquisition (map or line scan) in the electron image. The size (width, height) is normalized by the __width__ of the electron image.
+Bounding Box Size | | H5T_NATIVE_FLOAT | (1, 2) | Size (width, height) of the bounding box surrounding the acquisition in micrometers. See [Definition of Bounding Box Size, Relative Offset and Relative Size](#bounding-box) for more information.
+Relative Offset | | H5T_NATIVE_FLOAT | (1, 2) | Top-left corner of the bounding box of the acquisition in the electron image. The X coordinate is normalized by the __width__ of the electron image. The Y coordinate is normalized by the __height__ of the electron image. See [Definition of Bounding Box Size, Relative Offset and Relative Size](#bounding-box) for more information.
+Relative Size | | H5T_NATIVE_FLOAT | (1, 2) | Size of the bounding box of the acquisition in the electron image. The width is normalized by the __width__ of the electron image. The height is normalized by the __height__ of the electron image. See [Definition of Bounding Box Size, Relative Offset and Relative Size](#bounding-box) for more information.
+
 
 #### <a name="stage-position"></a> Stage Position Group Specification
 
@@ -160,6 +163,20 @@ Y | yes | H5T_NATIVE_FLOAT | (1, 1) | In millimeters
 Z | | H5T_NATIVE_FLOAT | (1, 1) | In millimeters
 Tilt | | H5T_NATIVE_FLOAT | (1, 1) | Tilt angle of the stage in radians
 Rotation | | H5T_NATIVE_FLOAT | (1, 1) | Rotation angle of the stage in radians
+
+#### <a name="bounding-box"></a> Definition of Bounding Box Size, Relative Offset and Relative Size
+
+The Bounding Box Size specifies the dimensions of the rectangle enclosing the acquisition area. 
+The figure below shows examples of the bounding box for a (a) rectangular map, (b) irregular-shaped map and (c) line scan.
+Note for irregular-shaped maps, the value of pixels outside the acquisition area in the Data group datasets is set to `NaN`.
+
+The Relative Offset specifies the position of the top-left corner of the bounding box in the electron image.
+The X and Y coordinates are respectively normalized by the width and height of the electron image.
+The Relative Size specifies the dimensions of the bounding box in the electron image.
+The width and height are respectively normalized by the width and height of the electron image.
+The values of the relative offset and size for the 3 examples are shown in the figure below.
+
+![Bounding Box](boundingbox.svg)
 
 ### <a name="ebsd"></a> EBSD Technique
 
