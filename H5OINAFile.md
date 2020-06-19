@@ -72,9 +72,9 @@ AZtec project:
 
 _.h5oina_ files:
 
-- Project 1-Specimen 1-Site 1-Map Data 1.h5oina
-- Project 1-Specimen 1-Site 1-Map Data 2.h5oina
-- Project 1-Specimen 1-Site 1-Line Data 1.h5oina
+- Project 1 Specimen 1 Site 1 Map Data 1.h5oina
+- Project 1 Specimen 1 Site 1 Map Data 2.h5oina
+- Project 1 Specimen 1 Site 1 Line Data 1.h5oina
 
 ## File Layout
 
