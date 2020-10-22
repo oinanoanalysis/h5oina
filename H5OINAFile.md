@@ -4,7 +4,7 @@ Version | Release AZtec Version
 --- | ---
 1.0 | AZtec 4.2
 2.0 | AZtec 4.3
-3.0 | ?
+3.0 | AZtec 5.0
 
 This document details the specification for the Oxford Instruments NanoAnalysis HDF5 file format (_.h5oina_).
 This file format can be used to export electron images, EDS and EBSD acquisitions as well as combined EDS/EBSD acquisitions.
