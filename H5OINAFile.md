@@ -4,6 +4,7 @@ Version | Release AZtec Version
 --- | ---
 1.0 | AZtec 4.2
 2.0 | AZtec 4.3
+3.0 | AZtec 5.0
 
 This document details the specification for the Oxford Instruments NanoAnalysis HDF5 file format (_.h5oina_).
 This file format can be used to export electron images, EDS and EBSD acquisitions as well as combined EDS/EBSD acquisitions.
@@ -42,6 +43,7 @@ It is using the [Hierarchical Data Format 5](http://www.hdfgroup.org) file forma
 - All datasets and attributes of type H5T_STRING are encoded as UTF8 (see [H5T_CSET_UTF8](https://confluence.hdfgroup.org/display/HDF5/H5T_SET_CSET)).
 - Each dataset defining color(s) contains three columns for the red, green and blue components.
 - An _.h5oina_ file may not contain all the datasets specified in this specification. Different hardware and acquisition conditions mean that some parameters are not available, and therefore cannot be exported. The mandatory datasets are indicated below.
+- In the Data datasets, the value of pixels outside the acquisition area is set to `NaN`.
 
 ## <a name="data-tree"></a> AZtec Project Data Tree
 
@@ -49,9 +51,9 @@ Here is how the AZtec data are exported to _.h5oina_.
 An AZtec project is normally structured using _Specimen_ and _Site_.
 A _Site_ may contain one or more acquisitions like ED spectra, ED mappings, EDS mappings, EBSD mappings, electron images, etc.
 If the user decides to export the whole project to _.h5oina_, an _.h5oina_ file would be created for each acquisition.
-For instance, the following project would be exported as two _.h5oina_ files: one for _Map Analysis 1_ and another for _Map Analysis 2_.
-Note that the EDS and EBSD data of the _Map Analysis 1_ are stored in the same _.h5oina_ file.
-_Electron Image 1_ and _Electron Image 2_ are stored in the _.h5oina_ file of both _Map Analysis 1_ and _Map Analysis 2_.
+For instance, the following project would be exported as three _.h5oina_ files: one for _Map Data 1_, another for _Map Data 2_ and a final one for _Line Data 1_.
+Note that the EDS and EBSD data of the _Map Data 1_ are stored in the same _.h5oina_ file.
+_Electron Image 1_ and _Electron Image 2_ are stored in all the _.h5oina_ files.
 
 AZtec project:
 
@@ -60,16 +62,19 @@ AZtec project:
     - Site 1
       - Electron Image 1
       - Electron Image 2
-      - Map Analysis 1
+      - Map Data 1
         - EBSD Data
         - EDS Data
-      - Map Analysis 2
+      - Map Data 2
         - EBSD Data
+      - Line Data 1
+        - EDS Data
 
 _.h5oina_ files:
 
-- Project 1-Specimen 1-Site 1-Map Analysis 1.h5oina
-- Project 1-Specimen 1-Site 1-Map Analysis 2.h5oina
+- Project 1 Specimen 1 Site 1 Map Data 1.h5oina
+- Project 1 Specimen 1 Site 1 Map Data 2.h5oina
+- Project 1 Specimen 1 Site 1 Line Data 1.h5oina
 
 ## File Layout
 
@@ -98,7 +103,7 @@ The techniques can be, but not restrictive to:
 --- | --- | ---
 [EBSD](#ebsd) | | Contains one EBSD acquisition
 [EDS](#eds) | | Contains one EDS acquisition
-[Electron Image](#electronimage) | | Contains one EDS acquisition
+[Electron Image](#electronimage) | | Contains electron images associated with the EDS and/or EBSD acquisition
 [Data Processing](#dataprocessing) | | Contains results created by data processing software, such as AZtec Crystal
 
 ### <a name="technique"></a> Technique Group Specification
@@ -137,11 +142,15 @@ Beam Voltage | | H5T_NATIVE_FLOAT | (1, 1) | In kilovolts
 Working Distance | | H5T_NATIVE_FLOAT | (1, 1) | Working distance of microscope (in millimeters)
 Tilt Angle | | H5T_NATIVE_FLOAT | (1, 1) | Tilt angle of sample (either from stage tilt or pre-tilted holder)
 Tilt Axis | | H5T_NATIVE_FLOAT | (1, 1) | 0 for x-axis, &pi;/2 for y-axis
-X Cells | yes | H5T_NATIVE_INT32 | (1, 1) | Width of map in pixels
-Y Cells | yes | H5T_NATIVE_INT32 | (1, 1) | Height of map in pixels
-X Step | yes | H5T_NATIVE_FLOAT | (1, 1) | Step size along x-axis in micrometers
-Y Step | yes | H5T_NATIVE_FLOAT | (1, 1) | Step size along y-axis in micrometers
+X Cells | yes | H5T_NATIVE_INT32 | (1, 1) | Map: Width in pixels.<br>Line scan: Length in pixels.
+Y Cells | yes | H5T_NATIVE_INT32 | (1, 1) | Map: Height in pixels.<br>Line scan: Always set to 1.
+X Step | yes | H5T_NATIVE_FLOAT | (1, 1) | Map: Step size along x-axis in micrometers.<br>Line scan: step size along the line scan in micrometers.
+Y Step | yes | H5T_NATIVE_FLOAT | (1, 1) | Map: Step size along y-axis in micrometers.<br>Line scan: Always set to 0.
 Drift Correction | | H5T_NATIVE_HBOOL | (1, 1) | Whether drift correction was used during this acquisition
+Bounding Box Size | | H5T_NATIVE_FLOAT | (1, 2) | Size (width, height) of the bounding box surrounding the acquisition in micrometers. See [Definition of Bounding Box Size, Relative Offset and Relative Size](#bounding-box) for more information.
+Relative Offset | | H5T_NATIVE_FLOAT | (1, 2) | Top-left corner of the bounding box of the acquisition in the electron image. The X coordinate is normalized by the __width__ of the electron image. The Y coordinate is normalized by the __height__ of the electron image. See [Definition of Bounding Box Size, Relative Offset and Relative Size](#bounding-box) for more information.
+Relative Size | | H5T_NATIVE_FLOAT | (1, 2) | Size of the bounding box of the acquisition in the electron image. The width is normalized by the __width__ of the electron image. The height is normalized by the __height__ of the electron image. See [Definition of Bounding Box Size, Relative Offset and Relative Size](#bounding-box) for more information.
+
 
 #### <a name="stage-position"></a> Stage Position Group Specification
 
@@ -155,11 +164,25 @@ Z | | H5T_NATIVE_FLOAT | (1, 1) | In millimeters
 Tilt | | H5T_NATIVE_FLOAT | (1, 1) | Tilt angle of the stage in radians
 Rotation | | H5T_NATIVE_FLOAT | (1, 1) | Rotation angle of the stage in radians
 
+#### <a name="bounding-box"></a> Definition of Bounding Box Size, Relative Offset and Relative Size
+
+The Bounding Box Size specifies the dimensions of the rectangle enclosing the acquisition area. 
+The figure below shows examples of the bounding box for a (a) rectangular map, (b) irregular-shaped map and (c) line scan.
+Note for irregular-shaped maps, the value of pixels outside the acquisition area in the Data group datasets is set to `NaN`.
+
+The Relative Offset specifies the position of the top-left corner of the bounding box in the electron image.
+The X and Y coordinates are respectively normalized by the width and height of the electron image.
+The Relative Size specifies the dimensions of the bounding box in the electron image.
+The width and height are respectively normalized by the width and height of the electron image.
+The values of the relative offset and size for the 3 examples are shown in the figure below.
+
+![Bounding Box](boundingbox.svg)
+
 ### <a name="ebsd"></a> EBSD Technique
 
 #### <a name="ebsd-data"></a> Data Group Specification
 
-The number of rows (first dimension of array) of all datasets is equal to the size of the acquisition (i.e. width x height).
+The number of rows (first dimension of array) of all datasets is equal to the size of the acquisition. For example, width x height for maps and length for line scans.
 In other words, it is equal to the total number of pixels in the acquisition.
 
 The EBSD Data Group contains the following datasets.
@@ -167,11 +190,11 @@ The EBSD Data Group contains the following datasets.
 **Dataset Name** | **Mandatory** | **HDF5 Type** | **Dimension (row, column)** | **Comment**
 --- | --- | --- | --- | ---
 Phase | yes | H5T_NATIVE_INT32 | (size, 1) | Index of phase, 0 if not indexed
-X | | H5T_NATIVE_FLOAT | (size, 1) | X position in micrometers
-Y | | H5T_NATIVE_FLOAT | (size, 1) | Y position in micrometers
+X | | H5T_NATIVE_FLOAT | (size, 1) | X position of each pixel in micrometers (origin: top left corner)
+Y | | H5T_NATIVE_FLOAT | (size, 1) | Y position of each pixel in micrometers (origin: top left corner)
 Bands | | H5T_NATIVE_INT32 | (size, 1) | Number of bands positively indexed
 Error | | H5T_NATIVE_INT32 | (size, 1) | Error code. Some of these codes are historical and no longer apply. NotAnalyzed=0, Success=1, NoSolution=2, LowBandContrast=3, LowBandSlope=4, HighMAD=5, UnexpectedError=6, Replaced=7
-Euler | yes | H5T_NATIVE_FLOAT | (size, 3) | Orientation of Crystal (CS2) to Sample-Surface (CS1). See [Definition of Coordinate Systems](#coordinate-system) for more information.
+Euler | yes | H5T_NATIVE_FLOAT | (size, 3) | Orientation of Crystal (CS2) to Sample-Surface (CS1). See [Definition of Coordinate Systems](#coordinate-systems) for more information.
 Mean Angular Deviation | | H5T_NATIVE_FLOAT | (size, 1) | In radians
 Band Contrast | | H5T_NATIVE_INT32 | (size, 1) |
 Band Slope | | H5T_NATIVE_INT32 | (size, 1) |
@@ -194,7 +217,7 @@ Apart from the [common header specification](#common-header), the EBSD Header Gr
 
 **Dataset Name** | **Mandatory** | **HDF5 Type** | **Dimension (row, column)** | **Comment**
 --- | --- | --- | --- | ---
-Detector Orientation Euler | | H5T_NATIVE_FLOAT | (1, 3) | Orientation of Detector (CS3) to Microscope (CSm). See [Definition of Coordinate Systems](#coordinate-system) for more information.
+Detector Orientation Euler | | H5T_NATIVE_FLOAT | (1, 3) | Orientation of Detector (CS3) to Microscope (CSm). See [Definition of Coordinate Systems](#coordinate-systems) for more information.
 Detector Insertion Distance | | H5T_NATIVE_FLOAT | (1, 1) | Insertion distance of EBSD detector in millimeters
 Lens Distortion | | H5T_NATIVE_FLOAT | (1, 1) |
 Lens Field View | | H5T_NATIVE_FLOAT | (1, 1) | In millimeters
@@ -213,7 +236,7 @@ Indexing Mode | | H5T_STRING | (1, 1) | Either _Optimized - EBSD_, _Optimized - 
 Hit Rate | | H5T_NATIVE_FLOAT | (1, 1) | Hit rate, percentage of indexed pixels
 Acquisition Time | | H5T_NATIVE_FLOAT | (1, 1) | In seconds
 Acquisition Speed | | H5T_NATIVE_FLOAT | (1, 1) | In pixels per second
-Specimen Orientation Euler | yes | H5T_NATIVE_FLOAT | (1, 3) | Orientation of Sample-Surface (CS1) to Sample-Primary (CS0). See [Definition of Coordinate Systems](#coordinate-system) for more information.
+Specimen Orientation Euler | yes | H5T_NATIVE_FLOAT | (1, 3) | Orientation of Sample-Surface (CS1) to Sample-Primary (CS0). See [Definition of Coordinate Systems](#coordinate-systems) for more information.
 Scanning Rotation Angle | yes | H5T_NATIVE_FLOAT | (1, 1) | Angle between the specimen tilt axis and the scanning tilt axis in radians. If NaN, the angle is unknown.
 
 ##### <a name="ebsd-phase"></a> Phase Group Specification
@@ -253,7 +276,7 @@ The absolute crystal orientation is given by the orientation of the crystal (CS2
 
 #### <a name="eds-data"></a> Data Group Specification ####
 
-The number of rows (first dimension of array) of all datasets is equal to the size of the acquisition (i.e. width x height).
+The number of rows (first dimension of array) of all datasets is equal to the size of the acquisition. For example, width x height for maps and length for line scans.
 In other words, it is equal to the total number of pixels in the acquisition.
 
 The EDS Data Group contains at least one of the following groups, but may also contain two or all three.
@@ -291,8 +314,8 @@ The EDS Data Group contains the following datasets.
 
 **Dataset Name** | **Mandatory** | **HDF5 Type** | **Dimension (row, column)** | **Comment**
 --- | --- | --- | --- | ---
-X | | H5T_NATIVE_FLOAT | (size, 1) | X position in micrometers
-Y | | H5T_NATIVE_FLOAT | (size, 1) | Y position in micrometers
+X | | H5T_NATIVE_FLOAT | (size, 1) | X position of each pixel in micrometers (origin: top left corner)
+Y | | H5T_NATIVE_FLOAT | (size, 1) | Y position of each pixel in micrometers (origin: top left corner)
 Live Time | yes | H5T_NATIVE_FLOAT | (size, 1) | In seconds
 Real Time | | H5T_NATIVE_FLOAT | (size, 1) | In seconds
 
@@ -362,7 +385,7 @@ The Data Processing Data Group contains the following datasets, which is a subse
 **Dataset Name** | **Mandatory** | **HDF5 Type** | **Dimension (row, column)** | **Comment**
 --- | --- | --- | --- | ---
 Phase | yes | H5T_NATIVE_INT32 | (size, 1) | Index of phase, 0 if not indexed
-Euler | yes | H5T_NATIVE_FLOAT | (size, 3) | Orientation of Crystal (CS2) to Sample-Surface (CS1). See [Definition of Coordinate Systems](#coordinate-system) for more information.
+Euler | yes | H5T_NATIVE_FLOAT | (size, 3) | Orientation of Crystal (CS2) to Sample-Surface (CS1). See [Definition of Coordinate Systems](#coordinate-systems) for more information.
 Mean Angular Deviation | | H5T_NATIVE_FLOAT | (size, 1) | In radians
 
 #### <a name="dataprocessing-header"></a> Header Group Specification ####
@@ -372,6 +395,8 @@ The Data Processing Header Group contains the following datasets.
 **Dataset Name** | **Mandatory** | **HDF5 Type** | **Dimension (row, column)** | **Comment**
 --- | --- | --- | --- | ---
 Specimen Symmetry | | H5T_STRING | (1, 1) | Triclinic, Monoclinic or Orthorhombic
+Sample Primary Direction Labels | | H5T_STRING | (3, 1) | Labels associated to the directions of the Sample-Primary coordinate system (CS0). See [Definition of Coordinate Systems](#coordinate-systems) for more information.
+Sample Surface Direction Labels | | H5T_STRING | (3, 1) | Labels associated to the directions of the Sample-Surface coordinate system (CS1). See [Definition of Coordinate Systems](#coordinate-systems) for more information.
 
 The Data Processing Header Group only contains the following group:
 
@@ -392,10 +417,10 @@ The Header group always contains the following mandatory datasets:
 **Dataset Name** | **Mandatory** | **HDF5 Type** | **Dimension (row, column)** | **Comment**
 --- | --- | --- | --- | ---
 Analysis Type | yes | H5T_STRING | (1, 1) | Type of the analysis, currently: Grain Detection, Kernel Average Misorientation, Inverse Pole Figure
-X Cells | yes | H5T_NATIVE_INT32 | (1, 1) | Width of map in pixels
-Y Cells | yes | H5T_NATIVE_INT32 | (1, 1) | Height of map in pixels
-X Step | yes | H5T_NATIVE_FLOAT | (1, 1) | Step size along x-axis in micrometers
-Y Step | yes | H5T_NATIVE_FLOAT | (1, 1) | Step size along y-axis in micrometers
+X Cells | yes | H5T_NATIVE_INT32 | (1, 1) | Map: Width in pixels. Line scan: Length in pixels.
+Y Cells | yes | H5T_NATIVE_INT32 | (1, 1) | Map: Height in pixels. Line scan: Always set to 1.
+X Step | yes | H5T_NATIVE_FLOAT | (1, 1) | Map: Step size along x-axis in micrometers. Line scan: step size along the line scan in micrometers.
+Y Step | yes | H5T_NATIVE_FLOAT | (1, 1) | Map: Step size along y-axis in micrometers. Line scan: Always set to 0.
 
 Here are some examples of type of analysis and their parameters.
 
