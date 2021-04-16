@@ -5,6 +5,7 @@ Version | Release AZtec Version
 1.0 | AZtec 4.2
 2.0 | AZtec 4.3
 3.0 | AZtec 5.0
+4.0 | AZtec 5.1
 
 This document details the specification for the Oxford Instruments NanoAnalysis HDF5 file format (_.h5oina_).
 This file format can be used to export electron images, EDS and EBSD acquisitions as well as combined EDS/EBSD acquisitions.
@@ -29,6 +30,9 @@ It is using the [Hierarchical Data Format 5](http://www.hdfgroup.org) file forma
   - [Electron Image](#electronimage)
     - [Data](#electronimage-data)
     - [Header](#electronimage-header)
+  - [Layered Image](#layeredimage)
+    - [Data](#layeredimage-data)
+    - [Header](#layeredimage-header)
   - [Data Processing](#dataprocessing)
     - [Data](#dataprocessing-data)
     - [Header](#dataprocessing-header)
@@ -104,6 +108,7 @@ The techniques can be, but not restrictive to:
 [EBSD](#ebsd) | | Contains one EBSD acquisition
 [EDS](#eds) | | Contains one EDS acquisition
 [Electron Image](#electronimage) | | Contains electron images associated with the EDS and/or EBSD acquisition
+[Layered Image](#layeredimage) | | Contains composite images made of layers from EDS, EBSD and/or electron images
 [Data Processing](#dataprocessing) | | Contains results created by data processing software, such as AZtec Crystal
 
 ### <a name="technique"></a> Technique Group Specification
@@ -310,7 +315,7 @@ Upper Value | yes | H5T_NATIVE_FLOAT | (1, 1) | Upper value of the palette assoc
 Upper Color | yes | H5T_NATIVE_UINT8 | (1, 3) | Three columns for the RGB values of the color associated with the upper value
 Gamma | yes | H5T_NATIVE_FLOAT | (1, 1) | One over the exponent of the [gamma correction](https://en.wikipedia.org/wiki/Gamma_correction) used to create the palette associated with this dataset: I' = I ^ (1 / gamma), where I is the intensity and I', the corrected intensity
 
-The EDS Data Group contains the following datasets.
+The EDS Data Group also contains the following datasets.
 
 **Dataset Name** | **Mandatory** | **HDF5 Type** | **Dimension (row, column)** | **Comment**
 --- | --- | --- | --- | ---
@@ -368,6 +373,28 @@ Apart from the [common header specification](#common-header), the Electron Image
 --- | --- | --- | --- | ---
 Number Frames Averaged | | H5T_NATIVE_INT32 | (1, 1) |
 Dwell Time | | H5T_NATIVE_FLOAT | (1, 1) | Dwell time in microseconds
+
+### <a name="layeredimage"></a> Layered Image Technique ###
+
+Note that an additional group level is added in this technique.
+The *Layered Image* group does not directly contain *Data* and *Header* groups, but a group for each layered image associated with an acquisition
+(e.g., "EDS Layered Image 1" or "EBSD Layered Image 1").
+This additional group level is required as each layered image might have different header entries.
+#### <a name="layeredimage-data"></a> Data Group Specification ####
+
+The number of rows (first dimension of array) of all datasets is equal to the size of the acquisition.
+For example, width x height for maps and length for line scans.
+In other words, it is equal to the total number of pixels in the acquisition.
+
+The Layered Image Data Group contains the following datasets.
+
+**Dataset Name** | **Mandatory** | **HDF5 Type** | **Dimension (row, column)** | **Comment**
+--- | --- | --- | --- | ---
+Color | yes | H5T_NATIVE_UINT8 | (1, 3) | Three columns for the RGB values. The dataset has two attributes: **Layers** and **Weights**. **Layers** attribute indicates the name of the layers, whereas **Weights** attribute gives their relative weight.
+
+#### <a name="layeredimage-header"></a> Header Group Specification ####
+
+The Layered Image Header Group only contains the datasets from the [common header specification](#common-header).
 
 ### <a name="dataprocessing"></a> Data Processing Technique ###
 
