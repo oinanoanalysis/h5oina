@@ -122,13 +122,13 @@ Header | yes | Contains all the header entries
 
 ### <a name="common-header"></a> Common Header Group Specification
 
-The following groups are common to the header group of the EBSD, EDS and Electron Image techniques.
+The following groups are common to the header group of all techniques.
 
 **Group Name** | **Mandatory** | **Comment**
 --- | --- | ---
 [Stage Position](#stage-position) | | Contains datasets about the stage position of this acquisition
 
-The following datasets are common to the header group of the EBSD, EDS and Electron Image techniques.
+The following datasets are common to the header group of all techniques.
 
 **Dataset Name** | **Mandatory** | **HDF5 Type** | **Dimension (row, column)** | **Comment**
 --- | --- | --- | --- | ---
