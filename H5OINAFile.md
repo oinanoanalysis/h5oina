@@ -58,8 +58,9 @@ It is using the [Hierarchical Data Format 5](http://www.hdfgroup.org) file forma
   * Add support for line scans
   * Add metadata about bounding box
 * 2.0
-  * Add support for electron images
-  * Add support for data processing
+  * Add support for electron image and data processing techniques
+  * Add support for EDS only acquisitions
+  * Add the palette of EDS maps
 * 1.0
   * First release
 
@@ -74,7 +75,7 @@ Note that the EDS and EBSD data of the _Map Data 1_ are stored in the same _.h5o
 _Electron Image 1_ and _Electron Image 2_ are stored in all the _.h5oina_ files.
 
 :label: Added in version 3.0 support for line scans
-:label: Added in version 2.0 support for electron images
+:label: Added in version 2.0 support for electron images and EDS only acquisitions
 
 AZtec project:
 
@@ -317,22 +318,22 @@ Each dataset in the Window Integral and Peak Area groups has the following attri
 --- | --- | --- | --- | ---
 Atomic Number | yes | H5T_NATIVE_INT32 | (1, 1) | Atomic number of analysed element
 X-ray Line | yes | H5T_STRING | (1, 1) | X-ray line analysed (e.g. Ka1, K series)
-Lower Value | yes | H5T_NATIVE_FLOAT | (1, 1) | Lower value of the palette associated with this dataset (in counts per second)
-Lower Color | yes | H5T_NATIVE_UINT8 | (1, 3) | Three columns for the RGB values of the color associated with the lower value
-Upper Value | yes | H5T_NATIVE_FLOAT | (1, 1) | Upper value of the palette associated with this dataset (in counts per second)
-Upper Color | yes | H5T_NATIVE_UINT8 | (1, 3) | Three columns for the RGB values of the color associated with the upper value
-Gamma | yes | H5T_NATIVE_FLOAT | (1, 1) | One over the exponent of the [gamma correction](https://en.wikipedia.org/wiki/Gamma_correction) used to create the palette associated with this dataset: I' = I ^ (1 / gamma), where I is the intensity and I', the corrected intensity
+Lower Value | yes | H5T_NATIVE_FLOAT | (1, 1) | Lower value of the palette associated with this dataset (in counts per second) :label: New in version 2.0
+Lower Color | yes | H5T_NATIVE_UINT8 | (1, 3) | Three columns for the RGB values of the color associated with the lower value :label: New in version 2.0
+Upper Value | yes | H5T_NATIVE_FLOAT | (1, 1) | Upper value of the palette associated with this dataset (in counts per second) :label: New in version 2.0
+Upper Color | yes | H5T_NATIVE_UINT8 | (1, 3) | Three columns for the RGB values of the color associated with the upper value :label: New in version 2.0
+Gamma | yes | H5T_NATIVE_FLOAT | (1, 1) | One over the exponent of the [gamma correction](https://en.wikipedia.org/wiki/Gamma_correction) used to create the palette associated with this dataset: I' = I ^ (1 / gamma), where I is the intensity and I', the corrected intensity :label: New in version 2.0
 
 Each dataset in the Composition group has the following attributes:
 
 **Attribute Name** | **Mandatory** | **HDF5 Type** | **Dimension (row, column)** | **Comment**
 --- | --- | --- | --- | ---
 Atomic Number | yes | H5T_NATIVE_INT32 | (1, 1) | Atomic number of analysed element
-Lower Value | yes | H5T_NATIVE_FLOAT | (1, 1) | Lower value of the palette associated with this dataset (in wt%)
-Lower Color | yes | H5T_NATIVE_UINT8 | (1, 3) | Three columns for the RGB values of the color associated with the lower value
-Upper Value | yes | H5T_NATIVE_FLOAT | (1, 1) | Upper value of the palette associated with this dataset (in wt%)
-Upper Color | yes | H5T_NATIVE_UINT8 | (1, 3) | Three columns for the RGB values of the color associated with the upper value
-Gamma | yes | H5T_NATIVE_FLOAT | (1, 1) | One over the exponent of the [gamma correction](https://en.wikipedia.org/wiki/Gamma_correction) used to create the palette associated with this dataset: I' = I ^ (1 / gamma), where I is the intensity and I', the corrected intensity
+Lower Value | yes | H5T_NATIVE_FLOAT | (1, 1) | Lower value of the palette associated with this dataset (in wt%) :label: New in version 2.0
+Lower Color | yes | H5T_NATIVE_UINT8 | (1, 3) | Three columns for the RGB values of the color associated with the lower value :label: New in version 2.0
+Upper Value | yes | H5T_NATIVE_FLOAT | (1, 1) | Upper value of the palette associated with this dataset (in wt%) :label: New in version 2.0
+Upper Color | yes | H5T_NATIVE_UINT8 | (1, 3) | Three columns for the RGB values of the color associated with the upper value :label: New in version 2.0
+Gamma | yes | H5T_NATIVE_FLOAT | (1, 1) | One over the exponent of the [gamma correction](https://en.wikipedia.org/wiki/Gamma_correction) used to create the palette associated with this dataset: I' = I ^ (1 / gamma), where I is the intensity and I', the corrected intensity :label: New in version 2.0
 
 The EDS Data Group also contains the following datasets.
 
