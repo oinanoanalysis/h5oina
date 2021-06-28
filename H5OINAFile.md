@@ -5,6 +5,7 @@ Version | Release AZtec Version
 1.0 | AZtec 4.2
 2.0 | AZtec 4.3
 3.0 | AZtec 5.0
+4.0 | AZtec 5.1
 
 This document details the specification for the Oxford Instruments NanoAnalysis HDF5 file format (_.h5oina_).
 This file format can be used to export electron images, EDS and EBSD acquisitions as well as combined EDS/EBSD acquisitions.
@@ -13,13 +14,14 @@ It is using the [Hierarchical Data Format 5](http://www.hdfgroup.org) file forma
 
 ## Table of Content
 
-- [General notes](#general-notes)
-- [AZtec project data tree](#data-tree)
+- [General Notes](#general-notes)
+- [What's New](#whatsnew)
+- [AZtec Project Data Tree](#data-tree)
 - File Layout
-  - [Root level](#root-level)
+  - [Root Level](#root-level)
   - [Slice](#slice)
   - [Technique](#technique)
-  - [Common header](#common-header)
+  - [Common Header](#common-header)
   - [EBSD](#ebsd)
     - [Data](#ebsd-data)
     - [Header](#ebsd-header)
@@ -29,6 +31,9 @@ It is using the [Hierarchical Data Format 5](http://www.hdfgroup.org) file forma
   - [Electron Image](#electronimage)
     - [Data](#electronimage-data)
     - [Header](#electronimage-header)
+  - [Layered Image](#layeredimage)
+    - [Data](#layeredimage-data)
+    - [Header](#layeredimage-header)
   - [Data Processing](#dataprocessing)
     - [Data](#dataprocessing-data)
     - [Header](#dataprocessing-header)
@@ -45,6 +50,20 @@ It is using the [Hierarchical Data Format 5](http://www.hdfgroup.org) file forma
 - An _.h5oina_ file may not contain all the datasets specified in this specification. Different hardware and acquisition conditions mean that some parameters are not available, and therefore cannot be exported. The mandatory datasets are indicated below.
 - In the Data datasets, the value of pixels outside the acquisition area is set to `NaN`.
 
+## <a name="whatsnew"></a> What's New
+
+* 4.0
+  * Add support for layered images
+* 3.0
+  * Add support for line scans
+  * Add metadata about bounding box
+* 2.0
+  * Add support for electron image and data processing techniques
+  * Add support for EDS only acquisitions
+  * Add the palette of EDS maps
+* 1.0
+  * First release
+
 ## <a name="data-tree"></a> AZtec Project Data Tree
 
 Here is how the AZtec data are exported to _.h5oina_.
@@ -54,6 +73,9 @@ If the user decides to export the whole project to _.h5oina_, an _.h5oina_ file 
 For instance, the following project would be exported as three _.h5oina_ files: one for _Map Data 1_, another for _Map Data 2_ and a final one for _Line Data 1_.
 Note that the EDS and EBSD data of the _Map Data 1_ are stored in the same _.h5oina_ file.
 _Electron Image 1_ and _Electron Image 2_ are stored in all the _.h5oina_ files.
+
+:label: Added in version 3.0 support for line scans
+<br>:label: Added in version 2.0 support for electron images and EDS only acquisitions
 
 AZtec project:
 
@@ -103,8 +125,9 @@ The techniques can be, but not restrictive to:
 --- | --- | ---
 [EBSD](#ebsd) | | Contains one EBSD acquisition
 [EDS](#eds) | | Contains one EDS acquisition
-[Electron Image](#electronimage) | | Contains electron images associated with the EDS and/or EBSD acquisition
-[Data Processing](#dataprocessing) | | Contains results created by data processing software, such as AZtec Crystal
+[Electron Image](#electronimage) | | Contains electron images associated with the EDS and/or EBSD acquisition <br>:label: New in version 2.0
+[Layered Image](#layeredimage) | | Contains composite images made of layers from EDS, EBSD and/or electron images <br>:label: New in version 4.0
+[Data Processing](#dataprocessing) | | Contains results created by data processing software, such as AZtec Crystal <br>:label: New in version 2.0
 
 ### <a name="technique"></a> Technique Group Specification
 
@@ -117,13 +140,13 @@ Header | yes | Contains all the header entries
 
 ### <a name="common-header"></a> Common Header Group Specification
 
-The following groups are common to the header group of the EBSD, EDS and Electron Image techniques.
+The following groups are common to the header group of all techniques.
 
 **Group Name** | **Mandatory** | **Comment**
 --- | --- | ---
 [Stage Position](#stage-position) | | Contains datasets about the stage position of this acquisition
 
-The following datasets are common to the header group of the EBSD, EDS and Electron Image techniques.
+The following datasets are common to the header group of all techniques.
 
 **Dataset Name** | **Mandatory** | **HDF5 Type** | **Dimension (row, column)** | **Comment**
 --- | --- | --- | --- | ---
@@ -147,9 +170,9 @@ Y Cells | yes | H5T_NATIVE_INT32 | (1, 1) | Map: Height in pixels.<br>Line scan:
 X Step | yes | H5T_NATIVE_FLOAT | (1, 1) | Map: Step size along x-axis in micrometers.<br>Line scan: step size along the line scan in micrometers.
 Y Step | yes | H5T_NATIVE_FLOAT | (1, 1) | Map: Step size along y-axis in micrometers.<br>Line scan: Always set to 0.
 Drift Correction | | H5T_NATIVE_HBOOL | (1, 1) | Whether drift correction was used during this acquisition
-Bounding Box Size | | H5T_NATIVE_FLOAT | (1, 2) | Size (width, height) of the bounding box surrounding the acquisition in micrometers. See [Definition of Bounding Box Size, Relative Offset and Relative Size](#bounding-box) for more information.
-Relative Offset | | H5T_NATIVE_FLOAT | (1, 2) | Top-left corner of the bounding box of the acquisition in the electron image. The X coordinate is normalized by the __width__ of the electron image. The Y coordinate is normalized by the __height__ of the electron image. See [Definition of Bounding Box Size, Relative Offset and Relative Size](#bounding-box) for more information.
-Relative Size | | H5T_NATIVE_FLOAT | (1, 2) | Size of the bounding box of the acquisition in the electron image. The width is normalized by the __width__ of the electron image. The height is normalized by the __height__ of the electron image. See [Definition of Bounding Box Size, Relative Offset and Relative Size](#bounding-box) for more information.
+Bounding Box Size | | H5T_NATIVE_FLOAT | (1, 2) | Size (width, height) of the bounding box surrounding the acquisition in micrometers. See [Definition of Bounding Box Size, Relative Offset and Relative Size](#bounding-box) for more information. <br>:label: New in version 3.0
+Relative Offset | | H5T_NATIVE_FLOAT | (1, 2) | Top-left corner of the bounding box of the acquisition in the electron image. The X coordinate is normalized by the __width__ of the electron image. The Y coordinate is normalized by the __height__ of the electron image. See [Definition of Bounding Box Size, Relative Offset and Relative Size](#bounding-box) for more information. <br>:label: New in version 3.0
+Relative Size | | H5T_NATIVE_FLOAT | (1, 2) | Size of the bounding box of the acquisition in the electron image. The width is normalized by the __width__ of the electron image. The height is normalized by the __height__ of the electron image. See [Definition of Bounding Box Size, Relative Offset and Relative Size](#bounding-box) for more information. <br>:label: New in version 3.0
 
 
 #### <a name="stage-position"></a> Stage Position Group Specification
@@ -158,13 +181,15 @@ The Stage Group contains the following datasets.
 
 **Dataset Name** | **Mandatory** | **HDF5 Type** | **Dimension (row, column)** | **Comment**
 --- | --- | --- | --- | ---
-X | yes | H5T_NATIVE_FLOAT | (1, 1) | In millimeters
-Y | yes | H5T_NATIVE_FLOAT | (1, 1) | In millimeters
+X | yes | H5T_NATIVE_FLOAT | (1, 1) | In millimeters <br>:label: Changed in version 2.0 to mandatory
+Y | yes | H5T_NATIVE_FLOAT | (1, 1) | In millimeters <br>:label: Changed in version 2.0 to mandatory
 Z | | H5T_NATIVE_FLOAT | (1, 1) | In millimeters
 Tilt | | H5T_NATIVE_FLOAT | (1, 1) | Tilt angle of the stage in radians
 Rotation | | H5T_NATIVE_FLOAT | (1, 1) | Rotation angle of the stage in radians
 
 #### <a name="bounding-box"></a> Definition of Bounding Box Size, Relative Offset and Relative Size
+
+:label: New in version 3.0
 
 The Bounding Box Size specifies the dimensions of the rectangle enclosing the acquisition area. 
 The figure below shows examples of the bounding box for a (a) rectangular map, (b) irregular-shaped map and (c) line scan.
@@ -235,7 +260,7 @@ Number Bands Detected | | H5T_NATIVE_INT32 | (1, 1) |
 Indexing Mode | | H5T_STRING | (1, 1) | Either _Optimized - EBSD_, _Optimized - TKD_ or _Refined Accuracy_
 Hit Rate | | H5T_NATIVE_FLOAT | (1, 1) | Hit rate, percentage of indexed pixels
 Acquisition Time | | H5T_NATIVE_FLOAT | (1, 1) | In seconds
-Acquisition Speed | | H5T_NATIVE_FLOAT | (1, 1) | In pixels per second
+Acquisition Speed | | H5T_NATIVE_FLOAT | (1, 1) | In pixels per second <br>:label: New in version 2.0
 Specimen Orientation Euler | yes | H5T_NATIVE_FLOAT | (1, 3) | Orientation of Sample-Surface (CS1) to Sample-Primary (CS0). See [Definition of Coordinate Systems](#coordinate-systems) for more information.
 Scanning Rotation Angle | yes | H5T_NATIVE_FLOAT | (1, 1) | Angle between the specimen tilt axis and the scanning tilt axis in radians. If NaN, the angle is unknown.
 
@@ -246,15 +271,15 @@ Each phase group is defined by the following datasets.
 **Dataset Name** | **Mandatory** | **HDF5 Type** | **Dimension (row, column)** | **Comment**
 --- | --- | --- | --- | ---
 Phase Name | yes | H5T_STRING | (1, 1) |
-Reference | yes | H5T_STRING | (1, 1) |
+Reference | yes | H5T_STRING | (1, 1) | :label: Changed in version 2.0 to mandatory
 Lattice Angles | yes | H5T_NATIVE_FLOAT | (1, 3) | Three columns for the alpha, beta and gamma angles in radians
 Lattice Dimensions | yes | H5T_NATIVE_FLOAT | (1, 3) | Three columns for a, b and c dimensions in Angstroms
 Laue Group | yes | H5T_NATIVE_INT32 | (1, 1) | Laue group index. The attribute **Symbol** contains the string representation, for example _m-3m_.
 Space Group | | H5T_NATIVE_INT32 | (1, 1) | Space group index. The attribute **Symbol** contains the string representation, for example _P m -3 m_.
 Number Reflectors | | H5T_NATIVE_INT32 | (1, 1) | Number of reflectors
 Color | | H5T_NATIVE_UINT8 | (1, 3) | Three columns for the RGB values
-Database Id | | H5T_NATIVE_UINT8 | (1, 1) | Id of the database where this phase was taken from
-Phase Id | | H5T_NATIVE_UINT8 | (1, 1) | Id of the phase in the database
+Database Id | | H5T_NATIVE_UINT8 | (1, 1) | Id of the database where this phase was taken from <br>:label: New in version 2.0
+Phase Id | | H5T_NATIVE_UINT8 | (1, 1) | Id of the phase in the database <br>:label: New in version 2.0
 
 #### <a name="coordinate-systems"></a> Definition of Coordinate Systems
 
@@ -265,7 +290,7 @@ Five coordinate systems are defined:
 **CS** | **Name** | **Description**
 --- | --- | ---
 CSm | Microscope stage | Follows the naming convention from the stage (XY)
-CS0 | Sample primary | For a rolled sheet of metal, this would be the rolling, tranverse, normal (RTN) system.In geology this could be the foliation, lineation system seen in some layered rocks.
+CS0 | Sample primary | For a rolled sheet of metal, this would be the rolling, tranverse, normal (RTN) system. In geology this could be the foliation, lineation system seen in some layered rocks.
 CS1 | Sample surface | Surface from where we acquire the EBSD measurements
 CS2 | Crystal | Follows the convention: Z parallel to c axis of the unit cell, X perpendicular to b and c axes of the unit cell and Y perpendicular to X and Z.
 CS3 | EBSD detector | The EBSD detector is position sensitive, in the way that the EBSP changes as we change the position of the detector in the SEM.
@@ -293,24 +318,24 @@ Each dataset in the Window Integral and Peak Area groups has the following attri
 --- | --- | --- | --- | ---
 Atomic Number | yes | H5T_NATIVE_INT32 | (1, 1) | Atomic number of analysed element
 X-ray Line | yes | H5T_STRING | (1, 1) | X-ray line analysed (e.g. Ka1, K series)
-Lower Value | yes | H5T_NATIVE_FLOAT | (1, 1) | Lower value of the palette associated with this dataset (in counts per second)
-Lower Color | yes | H5T_NATIVE_UINT8 | (1, 3) | Three columns for the RGB values of the color associated with the lower value
-Upper Value | yes | H5T_NATIVE_FLOAT | (1, 1) | Upper value of the palette associated with this dataset (in counts per second)
-Upper Color | yes | H5T_NATIVE_UINT8 | (1, 3) | Three columns for the RGB values of the color associated with the upper value
-Gamma | yes | H5T_NATIVE_FLOAT | (1, 1) | One over the exponent of the [gamma correction](https://en.wikipedia.org/wiki/Gamma_correction) used to create the palette associated with this dataset: I' = I ^ (1 / gamma), where I is the intensity and I', the corrected intensity
+Lower Value | yes | H5T_NATIVE_FLOAT | (1, 1) | Lower value of the palette associated with this dataset (in counts per second) <br>:label: New in version 2.0
+Lower Color | yes | H5T_NATIVE_UINT8 | (1, 3) | Three columns for the RGB values of the color associated with the lower value <br>:label: New in version 2.0
+Upper Value | yes | H5T_NATIVE_FLOAT | (1, 1) | Upper value of the palette associated with this dataset (in counts per second) <br>:label: New in version 2.0
+Upper Color | yes | H5T_NATIVE_UINT8 | (1, 3) | Three columns for the RGB values of the color associated with the upper value <br>:label: New in version 2.0
+Gamma | yes | H5T_NATIVE_FLOAT | (1, 1) | One over the exponent of the [gamma correction](https://en.wikipedia.org/wiki/Gamma_correction) used to create the palette associated with this dataset: I' = I ^ (1 / gamma), where I is the intensity and I', the corrected intensity <br>:label: New in version 2.0
 
 Each dataset in the Composition group has the following attributes:
 
 **Attribute Name** | **Mandatory** | **HDF5 Type** | **Dimension (row, column)** | **Comment**
 --- | --- | --- | --- | ---
 Atomic Number | yes | H5T_NATIVE_INT32 | (1, 1) | Atomic number of analysed element
-Lower Value | yes | H5T_NATIVE_FLOAT | (1, 1) | Lower value of the palette associated with this dataset (in wt%)
-Lower Color | yes | H5T_NATIVE_UINT8 | (1, 3) | Three columns for the RGB values of the color associated with the lower value
-Upper Value | yes | H5T_NATIVE_FLOAT | (1, 1) | Upper value of the palette associated with this dataset (in wt%)
-Upper Color | yes | H5T_NATIVE_UINT8 | (1, 3) | Three columns for the RGB values of the color associated with the upper value
-Gamma | yes | H5T_NATIVE_FLOAT | (1, 1) | One over the exponent of the [gamma correction](https://en.wikipedia.org/wiki/Gamma_correction) used to create the palette associated with this dataset: I' = I ^ (1 / gamma), where I is the intensity and I', the corrected intensity
+Lower Value | yes | H5T_NATIVE_FLOAT | (1, 1) | Lower value of the palette associated with this dataset (in wt%) <br>:label: New in version 2.0
+Lower Color | yes | H5T_NATIVE_UINT8 | (1, 3) | Three columns for the RGB values of the color associated with the lower value <br>:label: New in version 2.0
+Upper Value | yes | H5T_NATIVE_FLOAT | (1, 1) | Upper value of the palette associated with this dataset (in wt%) <br>:label: New in version 2.0
+Upper Color | yes | H5T_NATIVE_UINT8 | (1, 3) | Three columns for the RGB values of the color associated with the upper value <br>:label: New in version 2.0
+Gamma | yes | H5T_NATIVE_FLOAT | (1, 1) | One over the exponent of the [gamma correction](https://en.wikipedia.org/wiki/Gamma_correction) used to create the palette associated with this dataset: I' = I ^ (1 / gamma), where I is the intensity and I', the corrected intensity <br>:label: New in version 2.0
 
-The EDS Data Group contains the following datasets.
+The EDS Data Group also contains the following datasets.
 
 **Dataset Name** | **Mandatory** | **HDF5 Type** | **Dimension (row, column)** | **Comment**
 --- | --- | --- | --- | ---
@@ -343,6 +368,8 @@ Binning | | H5T_NATIVE_INT32 | (1, 1) | Binning factor from the original data
 
 ### <a name="electronimage"></a> Electron Image Technique ###
 
+:label: New in version 2.0
+
 #### <a name="electronimage-data"></a> Data Group Specification ####
 
 The Electron Image Data Group contains at least one of the following groups, but may also contain two or all three.
@@ -369,7 +396,33 @@ Apart from the [common header specification](#common-header), the Electron Image
 Number Frames Averaged | | H5T_NATIVE_INT32 | (1, 1) |
 Dwell Time | | H5T_NATIVE_FLOAT | (1, 1) | Dwell time in microseconds
 
+### <a name="layeredimage"></a> Layered Image Technique ###
+
+:label: New in version 4.0
+
+Note that an additional group level is added in this technique.
+The *Layered Image* group does not directly contain *Data* and *Header* groups, but a group for each layered image associated with an acquisition
+(e.g., "EDS Layered Image 1" or "EBSD Layered Image 1").
+This additional group level is required as each layered image might have different header entries.
+#### <a name="layeredimage-data"></a> Data Group Specification ####
+
+The number of rows (first dimension of array) of all datasets is equal to the size of the acquisition.
+For example, width x height for maps and length for line scans.
+In other words, it is equal to the total number of pixels in the acquisition.
+
+The Layered Image Data Group contains the following datasets.
+
+**Dataset Name** | **Mandatory** | **HDF5 Type** | **Dimension (row, column)** | **Comment**
+--- | --- | --- | --- | ---
+Color | yes | H5T_NATIVE_UINT8 | (1, 3) | Three columns for the RGB values. The dataset has two attributes: **Layers** and **Weights**. **Layers** attribute indicates the name of the layers, whereas **Weights** attribute gives their relative weight.
+
+#### <a name="layeredimage-header"></a> Header Group Specification ####
+
+The Layered Image Header Group only contains the datasets from the [common header specification](#common-header).
+
 ### <a name="dataprocessing"></a> Data Processing Technique ###
+
+:label: New in version 2.0
 
 This group contains results created by data processing software, such as AZtec Crystal.
 One reason for this group is to never overwrite the original datasets in EBSD and EDS Technique Groups.
@@ -395,8 +448,8 @@ The Data Processing Header Group contains the following datasets.
 **Dataset Name** | **Mandatory** | **HDF5 Type** | **Dimension (row, column)** | **Comment**
 --- | --- | --- | --- | ---
 Specimen Symmetry | | H5T_STRING | (1, 1) | Triclinic, Monoclinic or Orthorhombic
-Sample Primary Direction Labels | | H5T_STRING | (3, 1) | Labels associated to the directions of the Sample-Primary coordinate system (CS0). See [Definition of Coordinate Systems](#coordinate-systems) for more information.
-Sample Surface Direction Labels | | H5T_STRING | (3, 1) | Labels associated to the directions of the Sample-Surface coordinate system (CS1). See [Definition of Coordinate Systems](#coordinate-systems) for more information.
+Sample Primary Direction Labels | | H5T_STRING | (3, 1) | Labels associated to the directions of the Sample-Primary coordinate system (CS0). See [Definition of Coordinate Systems](#coordinate-systems) for more information. <br>:label: New in version 3.0
+Sample Surface Direction Labels | | H5T_STRING | (3, 1) | Labels associated to the directions of the Sample-Surface coordinate system (CS1). See [Definition of Coordinate Systems](#coordinate-systems) for more information. <br>:label: New in version 3.0
 
 The Data Processing Header Group only contains the following group:
 
