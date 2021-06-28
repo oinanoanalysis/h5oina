@@ -14,14 +14,14 @@ It is using the [Hierarchical Data Format 5](http://www.hdfgroup.org) file forma
 
 ## Table of Content
 
-- [General notes](#general-notes)
-- [What's new](#whatsnew)
-- [AZtec project data tree](#data-tree)
+- [General Notes](#general-notes)
+- [What's New](#whatsnew)
+- [AZtec Project Data Tree](#data-tree)
 - File Layout
-  - [Root level](#root-level)
+  - [Root Level](#root-level)
   - [Slice](#slice)
   - [Technique](#technique)
-  - [Common header](#common-header)
+  - [Common Header](#common-header)
   - [EBSD](#ebsd)
     - [Data](#ebsd-data)
     - [Header](#ebsd-header)
@@ -50,7 +50,7 @@ It is using the [Hierarchical Data Format 5](http://www.hdfgroup.org) file forma
 - An _.h5oina_ file may not contain all the datasets specified in this specification. Different hardware and acquisition conditions mean that some parameters are not available, and therefore cannot be exported. The mandatory datasets are indicated below.
 - In the Data datasets, the value of pixels outside the acquisition area is set to `NaN`.
 
-## <a name="whatsnew"></a> What's new
+## <a name="whatsnew"></a> What's New
 
 * 4.0
   * Add support for layered images
