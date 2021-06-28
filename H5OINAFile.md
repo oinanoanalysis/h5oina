@@ -271,7 +271,7 @@ Each phase group is defined by the following datasets.
 **Dataset Name** | **Mandatory** | **HDF5 Type** | **Dimension (row, column)** | **Comment**
 --- | --- | --- | --- | ---
 Phase Name | yes | H5T_STRING | (1, 1) |
-Reference | yes | H5T_STRING | (1, 1) | <br>:label: Changed in version 2.0 to mandatory
+Reference | yes | H5T_STRING | (1, 1) | :label: Changed in version 2.0 to mandatory
 Lattice Angles | yes | H5T_NATIVE_FLOAT | (1, 3) | Three columns for the alpha, beta and gamma angles in radians
 Lattice Dimensions | yes | H5T_NATIVE_FLOAT | (1, 3) | Three columns for a, b and c dimensions in Angstroms
 Laue Group | yes | H5T_NATIVE_INT32 | (1, 1) | Laue group index. The attribute **Symbol** contains the string representation, for example _m-3m_.
@@ -290,7 +290,7 @@ Five coordinate systems are defined:
 **CS** | **Name** | **Description**
 --- | --- | ---
 CSm | Microscope stage | Follows the naming convention from the stage (XY)
-CS0 | Sample primary | For a rolled sheet of metal, this would be the rolling, tranverse, normal (RTN) system.In geology this could be the foliation, lineation system seen in some layered rocks.
+CS0 | Sample primary | For a rolled sheet of metal, this would be the rolling, tranverse, normal (RTN) system. In geology this could be the foliation, lineation system seen in some layered rocks.
 CS1 | Sample surface | Surface from where we acquire the EBSD measurements
 CS2 | Crystal | Follows the convention: Z parallel to c axis of the unit cell, X perpendicular to b and c axes of the unit cell and Y perpendicular to X and Z.
 CS3 | EBSD detector | The EBSD detector is position sensitive, in the way that the EBSP changes as we change the position of the detector in the SEM.
