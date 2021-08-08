@@ -6,6 +6,7 @@ Version | Release AZtec Version
 2.0 | AZtec 4.3
 3.0 | AZtec 5.0
 4.0 | AZtec 5.1
+5.0 | 
 
 This document details the specification for the Oxford Instruments NanoAnalysis HDF5 file format (_.h5oina_).
 This file format can be used to export electron images, EDS and EBSD acquisitions as well as combined EDS/EBSD acquisitions.
@@ -52,6 +53,8 @@ It is using the [Hierarchical Data Format 5](http://www.hdfgroup.org) file forma
 
 ## <a name="whatsnew"></a> What's New
 
+* 5.0
+  * Add support for electron backscatter diffraction patterns (EBSPs)
 * 4.0
   * Add support for layered images
 * 3.0
@@ -229,6 +232,8 @@ Pattern Center Y | | H5T_NATIVE_FLOAT | (size, 1) | Pattern center Y position sc
 Detector Distance | | H5T_NATIVE_FLOAT | (size, 1) | Detector distance scaled to the width of the image.
 Beam Position X | | H5T_NATIVE_FLOAT | (size, 1) | X position of the beam in the real-world (in micrometers). The origin is in the center of the image, and a mathematical Y axis that is positive when going from bottom to top
 Beam Position Y | | H5T_NATIVE_FLOAT | (size, 1) | Y position of the beam in the real-world (in micrometers). The origin is in the center of the image, and a mathematical Y axis that is positive when going from bottom to top
+Unprocessed Patterns | | H5T_NATIVE_INT16 | (size, height, width) | Raw patterns without any background subtraction. The 2nd and 3rd dimension of the dataset correspond to the correspond to the height and width of the patterns, respectively. They also match the **Pattern Height** and **Pattern Width** datasets in the Header. <br>:label: New in version 5.0
+Processed Patterns | | H5T_NATIVE_UINT8 | (size, height, width) | Patterns after background subtraction. See **Static Background Correction** and **Auto Background Correction** datasets in the Header. The 2nd and 3rd dimension of the dataset correspond to the correspond to the height and width of the patterns, respectively. They also match the **Pattern Height** and **Pattern Width** datasets in the Header. <br>:label: New in version 5.0
 
 #### <a name="ebsd-header"></a> Header Group Specification
 
@@ -253,6 +258,8 @@ Number Frames Averaged | | H5T_NATIVE_INT32 | (1, 1) |
 Pattern Width | | H5T_NATIVE_INT32 | (1, 1) | Width of diffraction pattern images in pixels
 Pattern Height | | H5T_NATIVE_INT32 | (1, 1) | Height of diffraction pattern images in pixels
 Static Background Correction | | H5T_NATIVE_HBOOL | (1, 1) | Whether a static background correction was applied
+Processed Static Background | | H5T_NATIVE_UINT8 | (height, width) | Image used for the static background correction. The height and width correspond to the **Pattern Height** and **Pattern Width** datasets, respectively. <br>:label: New in version 5.0
+Unprocessed Static Background | | H5T_NATIVE_INT16 | (height, width) | Image used for the static background correction. The height and width correspond to the **Pattern Height** and **Pattern Width** datasets, respectively. <br>:label: New in version 5.0
 Auto Background Correction | | H5T_NATIVE_HBOOL | (1, 1) | Whether an automatic background correction was applied
 Hough Resolution | | H5T_NATIVE_INT32 | (1, 1) | &Delta;&rho; is equal to 1 / (2 * Hough Resolution + 1) and &Delta;&theta; is equal to &pi; / (2 * Hough Resolution + 1)
 Band Detection Mode | | H5T_STRING | (1, 1) | Either _Center_ or _Edge_
