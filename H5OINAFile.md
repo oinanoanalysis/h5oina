@@ -51,6 +51,7 @@ It is using the [Hierarchical Data Format 5](http://www.hdfgroup.org) file forma
 - Each dataset defining color(s) contains three columns for the red, green and blue components.
 - An _.h5oina_ file may not contain all the datasets specified in this specification. Different hardware and acquisition conditions mean that some parameters are not available, and therefore cannot be exported. The mandatory datasets are indicated below.
 - In the Data datasets, the value of pixels outside the acquisition area is set to `NaN`.
+- Some datasets use LZF compression. See [HDF5 Filter Plugins](https://portal.hdfgroup.org/display/support/HDF5+Filter+Plugins) and [LZF Compression Filter for HDF5](http://www.h5py.org/lzf/) for more information.
 
 ## <a name="whatsnew"></a> What's New
 
@@ -256,8 +257,8 @@ Pattern Center Y | | H5T_NATIVE_FLOAT | (size, 1) | Pattern center Y position sc
 Detector Distance | | H5T_NATIVE_FLOAT | (size, 1) | Detector distance scaled to the width of the image.
 Beam Position X | | H5T_NATIVE_FLOAT | (size, 1) | X position of the beam in the real-world (in micrometers). The origin is in the center of the image, and a mathematical Y axis that is positive when going from bottom to top
 Beam Position Y | | H5T_NATIVE_FLOAT | (size, 1) | Y position of the beam in the real-world (in micrometers). The origin is in the center of the image, and a mathematical Y axis that is positive when going from bottom to top
-Unprocessed Patterns | | H5T_NATIVE_INT16 | (size, height, width) | Raw patterns without any background subtraction. The 2nd and 3rd dimension of the dataset correspond to the correspond to the height and width of the patterns, respectively. They also match the **Pattern Height** and **Pattern Width** datasets in the Header. <br>:label: New in version 5.0
-Processed Patterns | | H5T_NATIVE_UINT8 | (size, height, width) | Patterns after background subtraction. See **Static Background Correction** and **Auto Background Correction** datasets in the Header. The 2nd and 3rd dimension of the dataset correspond to the correspond to the height and width of the patterns, respectively. They also match the **Pattern Height** and **Pattern Width** datasets in the Header. <br>:label: New in version 5.0
+Unprocessed Patterns | | H5T_NATIVE_INT16 | (size, height, width) | Raw patterns without any background subtraction. The 2nd and 3rd dimension of the dataset correspond to the correspond to the height and width of the patterns, respectively. They also match the **Pattern Height** and **Pattern Width** datasets in the Header. This dataset uses [LZF compression](https://portal.hdfgroup.org/display/support/HDF5+Filter+Plugins). <br>:label: New in version 5.0
+Processed Patterns | | H5T_NATIVE_UINT8 | (size, height, width) | Patterns after background subtraction. See **Static Background Correction** and **Auto Background Correction** datasets in the Header. The 2nd and 3rd dimension of the dataset correspond to the correspond to the height and width of the patterns, respectively. They also match the **Pattern Height** and **Pattern Width** datasets in the Header. This dataset uses [LZF compression](https://portal.hdfgroup.org/display/support/HDF5+Filter+Plugins). <br>:label: New in version 5.0
 
 #### <a name="ebsd-header"></a> Header Group Specification
 
