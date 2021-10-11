@@ -6,12 +6,23 @@ Version | Release AZtec Version
 2.0 | AZtec 4.3
 3.0 | AZtec 5.0
 4.0 | AZtec 5.1
-5.0 | 
+5.0 | AZtec 6.0
 
 This document details the specification for the Oxford Instruments NanoAnalysis HDF5 file format (_.h5oina_).
-This file format can be used to export electron images, EDS and EBSD acquisitions as well as combined EDS/EBSD acquisitions.
-The file format is largely influenced by the H5EBSD file format developed by Jackson et al. (2014) [[doi](http://dx.doi.org/10.1186/2193-9772-3-4)].
 It is using the [Hierarchical Data Format 5](http://www.hdfgroup.org) file format library, which has several implementations in different programming languages.
+This file format can be used to export:
+ - Electron images
+ - EDS maps
+ - EDS line scans
+ - EBSD maps
+ - EBSD line scans
+ - Combined EDS/EBSD maps
+ - Combined EDS/EBSD line scans
+ - Processed or unprocessed EBSPs
+ - Particle analysis data.
+
+The file format is largely influenced by the H5EBSD file format developed by Jackson et al. (2014) [[doi](http://dx.doi.org/10.1186/2193-9772-3-4)].
+More details about the guiding principles used in the design of this file format and its scope of use within the microanalysis community can be found in this M&M abstract [[doi](10.1017/S1431927621006103)].
 
 ## Table of Content
 
@@ -51,7 +62,7 @@ It is using the [Hierarchical Data Format 5](http://www.hdfgroup.org) file forma
 - Each dataset defining color(s) contains three columns for the red, green and blue components.
 - An _.h5oina_ file may not contain all the datasets specified in this specification. Different hardware and acquisition conditions mean that some parameters are not available, and therefore cannot be exported. The mandatory datasets are indicated below.
 - In the Data datasets, the value of pixels outside the acquisition area is set to `NaN`.
-- Some datasets use LZF compression. See [HDF5 Filter Plugins](https://portal.hdfgroup.org/display/support/HDF5+Filter+Plugins) and [LZF Compression Filter for HDF5](http://www.h5py.org/lzf/) for more information.
+- Some datasets use LZF compression. See [HDF5 Filter Plugins](https://portal.hdfgroup.org/display/support/HDF5+Filter+Plugins) and [LZF Compression Filter for HDF5](http://www.h5py.org/lzf/) for more information. :label: New in version 5.0
 
 ## <a name="whatsnew"></a> What's New
 
@@ -115,16 +126,22 @@ Each file has the following datasets under the root level.
 Manufacturer | | H5T_STRING | (1, 1) | i.e. _Oxford Instruments_
 Software Version | | H5T_STRING | (1, 1) | Version of software used to create this file
 Format Version | yes | H5T_STRING | (1, 1) | Version of this file format
-Index | yes | H5T_STRING | (number of slices, 1) | List of the name of the slices (i.e. acquisitions) contained in this file.
+Index | yes | H5T_STRING | (number of slices, 1) | List of the name of the slices (i.e. acquisitions) contained in this file. The attribute **Type** specifies to which type of acquisition the index corresponds to. Possible values are: _Single_ or _Feature_. For particle analysis, the Index corresponds to the index of each feature. <br>:label: Type attribute in version 5.0
 
 ### <a name="slice"></a> Slice Group Specification
 
+:label: Particle analysis acquisition added in version 5.0
+
 Each Slice (i.e. acquisition) has its own H5G_GROUP with the Name of the group as the index of the slice.
-The name of all the slices is given in the Index dataset.
-At the moment, _.h5oina_ only supports one acquisition per file, so the file only contains one Slice, labelled _1_.
+The name of all the slices is given in the Index dataset in the root level.
+At the moement, _.h5oina_ supports two types of acquisition (see Type attribute of the Index dataset in the root level):
+
+  1. Single acquisition (e.g., EDS map, EBSD map, EBSD line scan, etc.) where only one acquisition is stored per file. The file only contains one Slice, labelled _1_
+  2. Particle analysis acquisition where each slide corresponds to one analyzed feature.
 
 Within each Slice group there is at least one Technique group, representing the technique used for the acquisition.
 A Slide group can contain several Technique groups.
+Note that there is no _Feature_ technique; the particle analysis data and meta-data are stored in the [EDS](#eds) and [Electron Image](#electronimage) techniques.
 The techniques can be, but not restrictive to:
 
 **Group Name** | **Mandatory** | **Comment**
@@ -151,6 +168,7 @@ The following groups are common to the header group of all techniques.
 **Group Name** | **Mandatory** | **Comment**
 --- | --- | ---
 [Stage Position](#stage-position) | | Contains datasets about the stage position of this acquisition
+[Feature](#feature) | | Contains datasets about the feature from particle analysis <br>:label: New in version 5.0
 
 The following datasets are common to the header group of all techniques.
 
@@ -179,9 +197,9 @@ Drift Correction | | H5T_NATIVE_HBOOL | (1, 1) | Whether drift correction was us
 Bounding Box Size | | H5T_NATIVE_FLOAT | (1, 2) | Size (width, height) of the bounding box surrounding the acquisition in micrometers. See [Definition of Bounding Box Size, Relative Offset and Relative Size](#bounding-box) for more information. <br>:label: New in version 3.0
 Relative Offset | | H5T_NATIVE_FLOAT | (1, 2) | Top-left corner of the bounding box of the acquisition in the electron image. The X coordinate is normalized by the __width__ of the electron image. The Y coordinate is normalized by the __height__ of the electron image. See [Definition of Bounding Box Size, Relative Offset and Relative Size](#bounding-box) for more information. <br>:label: New in version 3.0
 Relative Size | | H5T_NATIVE_FLOAT | (1, 2) | Size of the bounding box of the acquisition in the electron image. The width is normalized by the __width__ of the electron image. The height is normalized by the __height__ of the electron image. See [Definition of Bounding Box Size, Relative Offset and Relative Size](#bounding-box) for more information. <br>:label: New in version 3.0
-Feature Index | | H5T_NATIVE_INT64 | (1, 1) | Index of feature from particle analysis. <br>:label: New in version 5.0
+Feature Index | | H5T_NATIVE_INT32 | (1, 1) | Index of feature from particle analysis. <br>:label: New in version 5.0
+Feature Parent Index | | H5T_NATIVE_INT32 | (1, 1) | If the feature was reacquired during a particle analysis acquisition, this index corresponds to the index of the parent feature. If a feature was not reacquired, the Feature Parent Index has a value of -1. <br>:label: New in version 5.0
 Feature Reconstructed | | H5T_NATIVE_BOOL | (1, 1) | Whether the feature from particle analysis was reconstructed. <br>:label: New in version 5.0
-Feature Reacquired | | H5T_NATIVE_BOOL | (1, 1) | Whether the feature from particle analysis was reacquired. <br>:label: New in version 5.0
 
 #### <a name="stage-position"></a> Stage Position Group Specification
 
@@ -194,6 +212,18 @@ Y | yes | H5T_NATIVE_FLOAT | (1, 1) | In millimeters <br>:label: Changed in vers
 Z | | H5T_NATIVE_FLOAT | (1, 1) | In millimeters
 Tilt | | H5T_NATIVE_FLOAT | (1, 1) | Tilt angle of the stage in radians
 Rotation | | H5T_NATIVE_FLOAT | (1, 1) | Rotation angle of the stage in radians
+
+#### <a name="feature"></a> Feature Group Specification
+
+:label: New in version 5.0
+
+The Feature Group contains the following datasets.
+
+**Dataset Name** | **Mandatory** | **HDF5 Type** | **Dimension (row, column)** | **Comment**
+--- | --- | --- | --- | ---
+Phase Index | | H5T_NATIVE_INT32 | (1, 1) | Index of the phase of the feature. If no phase was detected, the Phase Index has a value of -1.
+Class | | H5T_STRING | (1, 1) | Primary classification of the feature.
+Subclasses | | H5T_STRING | (*, 1) | Addition sub-classification(s) of the feature.
 
 #### <a name="bounding-box"></a> Definition of Bounding Box Size, Relative Offset and Relative Size
 
@@ -210,26 +240,6 @@ The width and height are respectively normalized by the width and height of the 
 The values of the relative offset and size for the 3 examples are shown in the figure below.
 
 ![Bounding Box](boundingbox.svg)
-
-### <a name="common-data"></a> Common Data Group Specification
-
-:label: New in version 5.0
-
-The following groups are common to the data group of all techniques.
-
-**Group Name** | **Mandatory** | **Comment**
---- | --- | ---
-[Feature](#feature) | | Contains datasets about the feature from particle analysis
-
-#### <a name="feature"></a> Feature Group Specification
-
-The Feature Group contains the following datasets.
-
-**Dataset Name** | **Mandatory** | **HDF5 Type** | **Dimension (row, column)** | **Comment**
---- | --- | --- | --- | ---
-Phase Index | | H5T_NATIVE_INT32 | (1, 1) | Index of the phase of the feature.
-Class | | H5T_STRING | (1, 1) | Primary classification of the feature.
-Subclasses | | H5T_STRING | (*, 1) | Addition sub-classification(s) of the feature.
 
 ### <a name="ebsd"></a> EBSD Technique
 
@@ -336,7 +346,7 @@ The absolute crystal orientation is given by the orientation of the crystal (CS2
 The number of rows (first dimension of array) of all datasets is equal to the size of the acquisition. For example, width x height for maps, length for line scans and 1 for single point.
 In other words, it is equal to the total number of pixels in the acquisition.
 
-The EDS Data Group contains at least one of the following groups, but may also contain two or all three.
+The EDS Data Group contains at least one of the following groups.
 
 **Group Name** | **Mandatory** | **Comment**
 --- | --- | ---
@@ -378,7 +388,7 @@ X | | H5T_NATIVE_FLOAT | (size, 1) | X position of each pixel in micrometers (or
 Y | | H5T_NATIVE_FLOAT | (size, 1) | Y position of each pixel in micrometers (origin: top left corner)
 Live Time | yes | H5T_NATIVE_FLOAT | (size, 1) | In seconds
 Real Time | | H5T_NATIVE_FLOAT | (size, 1) | In seconds
-Spectrum | | H5T_NATIVE_INT32 | (size, channels) | Spectrum of each pixel, with the raw intensities in counts. See **Number Channels** in the Header for the 2nd dimension. <br>:label: New in version 5.0
+Spectrum | | H5T_NATIVE_INT32 | (size, channels) | Spectrum of each pixel, with the raw intensities in counts. See **Number Channels** in the Header for the 2nd dimension. This dataset uses [LZF compression](https://portal.hdfgroup.org/display/support/HDF5+Filter+Plugins). <br>:label: New in version 5.0
 
 #### <a name="eds-header"></a> Header Group Specification ####
 
@@ -425,7 +435,7 @@ FSE | | Contains electron image(s) acquired by forward scatter electron detector
 
 :label: New in version 5.0
 
-The Electron Image Data Group may also contain a Feature group and the following datasets based on the morphological measurements during particle analysis.
+The Electron Image Data Group may also contain a Feature group with the following datasets based on the morphological measurements during particle analysis.
 
 **Dataset Name** | **Mandatory** | **HDF5 Type** | **Dimension (row, column)** | **Comment**
 --- | --- | --- | --- | ---
