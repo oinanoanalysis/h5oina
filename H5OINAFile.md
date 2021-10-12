@@ -11,7 +11,7 @@ Version | Release AZtec Version
 This document details the specification for the Oxford Instruments NanoAnalysis HDF5 file format (_.h5oina_).
 It is using the [Hierarchical Data Format 5](http://www.hdfgroup.org) file format library, which has several implementations in different programming languages.
 The file format is largely influenced by the H5EBSD file format developed by Jackson et al. (2014) [[doi](http://dx.doi.org/10.1186/2193-9772-3-4)].
-More details about the guiding principles used in the design of this file format and its scope of use within the microanalysis community can be found in this M&M abstract [[doi](10.1017/S1431927621006103)].
+More details about the guiding principles used in the design of this file format and its scope of use within the microanalysis community can be found in this M&M abstract [[doi](http://dx.doi.org/10.1017/S1431927621006103)].
 
 This file format can be used to export:
  - Electron images
@@ -134,13 +134,13 @@ Index | yes | H5T_STRING | (number of slices, 1) | List of the name of the slice
 
 Each Slice (i.e. acquisition) has its own H5G_GROUP with the Name of the group as the index of the slice.
 The name of all the slices is given in the Index dataset in the root level.
-At the moement, _.h5oina_ supports two types of acquisition (see Type attribute of the Index dataset in the root level):
+At the moment, _.h5oina_ supports two types of acquisition (see Type attribute of the Index dataset in the root level):
 
   1. Single acquisition (e.g., EDS map, EBSD map, EBSD line scan, etc.) where only one acquisition is stored per file. The file only contains one Slice, labelled _1_
-  2. Particle analysis acquisition where each slide corresponds to one analyzed feature.
+  2. Particle analysis acquisition where each slice corresponds to one analyzed feature.
 
 Within each Slice group there is at least one Technique group, representing the technique used for the acquisition.
-A Slide group can contain several Technique groups.
+A Slice group can contain several Technique groups.
 Note that there is no _Feature_ technique; the particle analysis data and meta-data are stored in the [EDS](#eds) and [Electron Image](#electronimage) techniques.
 The techniques can be, but not restrictive to:
 
@@ -297,9 +297,9 @@ Processed Static Background | | H5T_NATIVE_UINT8 | (height, width) | Image used 
 Unprocessed Static Background | | H5T_NATIVE_INT16 | (height, width) | Image used for the static background correction. The height and width correspond to the **Pattern Height** and **Pattern Width** datasets, respectively. <br>:label: New in version 5.0
 Auto Background Correction | | H5T_NATIVE_HBOOL | (1, 1) | Whether an automatic background correction was applied
 Hough Resolution | | H5T_NATIVE_INT32 | (1, 1) | &Delta;&rho; is equal to 1 / (2 * Hough Resolution + 1) and &Delta;&theta; is equal to &pi; / (2 * Hough Resolution + 1)
-Band Detection Mode | | H5T_STRING | (1, 1) | Either _Center_ or _Edge_
+Band Detection Mode | | H5T_STRING | (1, 1) | Either _Center_ or _Edge_, if the **Indexing Mode** is _Standard BD_.
 Number Bands Detected | | H5T_NATIVE_INT32 | (1, 1) |
-Indexing Mode | | H5T_STRING | (1, 1) | Either _Optimized - EBSD_, _Optimized - TKD_ or _Refined Accuracy_
+Indexing Mode | | H5T_STRING | (1, 1) | Either _Standard BD_, _Optimized BD_ or _Refined Accuracy_. In **Version** 3.0 and earlier, either _Optimized - EBSD_, _Optimized - TKD_ or _Refined Accuracy_.
 Hit Rate | | H5T_NATIVE_FLOAT | (1, 1) | Hit rate, percentage of indexed pixels
 Acquisition Time | | H5T_NATIVE_FLOAT | (1, 1) | In seconds
 Acquisition Speed | | H5T_NATIVE_FLOAT | (1, 1) | In pixels per second <br>:label: New in version 2.0
