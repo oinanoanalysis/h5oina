@@ -34,7 +34,6 @@ This file format can be used to export:
   - [Slice](#slice)
   - [Technique](#technique)
   - [Common Header](#common-header)
-  - [Common Data](#common-data)
   - [EBSD](#ebsd)
     - [Data](#ebsd-data)
     - [Header](#ebsd-header)
