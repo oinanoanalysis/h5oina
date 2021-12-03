@@ -6,11 +6,23 @@ Version | Release AZtec Version
 2.0 | AZtec 4.3
 3.0 | AZtec 5.0
 4.0 | AZtec 5.1
+5.0 | AZtec 6.0
 
 This document details the specification for the Oxford Instruments NanoAnalysis HDF5 file format (_.h5oina_).
-This file format can be used to export electron images, EDS and EBSD acquisitions as well as combined EDS/EBSD acquisitions.
-The file format is largely influenced by the H5EBSD file format developed by Jackson et al. (2014) [[doi](http://dx.doi.org/10.1186/2193-9772-3-4)].
 It is using the [Hierarchical Data Format 5](http://www.hdfgroup.org) file format library, which has several implementations in different programming languages.
+The file format is largely influenced by the H5EBSD file format developed by Jackson et al. (2014) [[doi](http://dx.doi.org/10.1186/2193-9772-3-4)].
+More details about the guiding principles used in the design of this file format and its scope of use within the microanalysis community can be found in this M&M abstract [[doi](http://dx.doi.org/10.1017/S1431927621006103)].
+
+This file format can be used to export:
+ - Electron images
+ - EDS maps
+ - EDS line scans
+ - EBSD maps
+ - EBSD line scans
+ - Combined EDS/EBSD maps
+ - Combined EDS/EBSD line scans
+ - Processed or unprocessed EBSPs
+ - Particle analysis data.
 
 ## Table of Content
 
@@ -49,9 +61,13 @@ It is using the [Hierarchical Data Format 5](http://www.hdfgroup.org) file forma
 - Each dataset defining color(s) contains three columns for the red, green and blue components.
 - An _.h5oina_ file may not contain all the datasets specified in this specification. Different hardware and acquisition conditions mean that some parameters are not available, and therefore cannot be exported. The mandatory datasets are indicated below.
 - In the Data datasets, the value of pixels outside the acquisition area is set to `NaN`.
+- Some datasets use LZF compression. See [HDF5 Filter Plugins](https://portal.hdfgroup.org/display/support/HDF5+Filter+Plugins) and [LZF Compression Filter for HDF5](http://www.h5py.org/lzf/) for more information. :label: New in version 5.0
 
 ## <a name="whatsnew"></a> What's New
 
+* 5.0
+  * Add support for electron backscatter diffraction patterns (EBSPs)
+  * Add support for feature/particle analysis
 * 4.0
   * Add support for layered images
 * 3.0
@@ -109,16 +125,22 @@ Each file has the following datasets under the root level.
 Manufacturer | | H5T_STRING | (1, 1) | i.e. _Oxford Instruments_
 Software Version | | H5T_STRING | (1, 1) | Version of software used to create this file
 Format Version | yes | H5T_STRING | (1, 1) | Version of this file format
-Index | yes | H5T_STRING | (number of slices, 1) | List of the name of the slices (i.e. acquisitions) contained in this file.
+Index | yes | H5T_STRING | (number of slices, 1) | List of the name of the slices (i.e. acquisitions) contained in this file. The attribute **Type** specifies to which type of acquisition the index corresponds to. Possible values are: _Single_ or _Feature_. For particle analysis, the Index corresponds to the index of each feature. <br>:label: Type attribute added in version 5.0
 
 ### <a name="slice"></a> Slice Group Specification
 
+:label: Particle analysis acquisition added in version 5.0
+
 Each Slice (i.e. acquisition) has its own H5G_GROUP with the Name of the group as the index of the slice.
-The name of all the slices is given in the Index dataset.
-At the moment, _.h5oina_ only supports one acquisition per file, so the file only contains one Slice, labelled _1_.
+The name of all the slices is given in the Index dataset in the root level.
+At the moment, _.h5oina_ supports two types of acquisition (see Type attribute of the Index dataset in the root level):
+
+  1. Single acquisition (e.g., EDS map, EBSD map, EBSD line scan, etc.) where only one acquisition is stored per file. The file only contains one Slice, labelled _1_
+  2. Particle analysis acquisition where each slice corresponds to one analyzed feature.
 
 Within each Slice group there is at least one Technique group, representing the technique used for the acquisition.
-A Slide group can contain several Technique groups.
+A Slice group can contain several Technique groups.
+Note that there is no _Feature_ technique; the particle analysis data and meta-data are stored in the [EDS](#eds) and [Electron Image](#electronimage) techniques.
 The techniques can be, but not restrictive to:
 
 **Group Name** | **Mandatory** | **Comment**
@@ -145,6 +167,7 @@ The following groups are common to the header group of all techniques.
 **Group Name** | **Mandatory** | **Comment**
 --- | --- | ---
 [Stage Position](#stage-position) | | Contains datasets about the stage position of this acquisition
+[Feature](#feature) | | Contains datasets about the feature from particle analysis <br>:label: New in version 5.0
 
 The following datasets are common to the header group of all techniques.
 
@@ -173,7 +196,9 @@ Drift Correction | | H5T_NATIVE_HBOOL | (1, 1) | Whether drift correction was us
 Bounding Box Size | | H5T_NATIVE_FLOAT | (1, 2) | Size (width, height) of the bounding box surrounding the acquisition in micrometers. See [Definition of Bounding Box Size, Relative Offset and Relative Size](#bounding-box) for more information. <br>:label: New in version 3.0
 Relative Offset | | H5T_NATIVE_FLOAT | (1, 2) | Top-left corner of the bounding box of the acquisition in the electron image. The X coordinate is normalized by the __width__ of the electron image. The Y coordinate is normalized by the __height__ of the electron image. See [Definition of Bounding Box Size, Relative Offset and Relative Size](#bounding-box) for more information. <br>:label: New in version 3.0
 Relative Size | | H5T_NATIVE_FLOAT | (1, 2) | Size of the bounding box of the acquisition in the electron image. The width is normalized by the __width__ of the electron image. The height is normalized by the __height__ of the electron image. See [Definition of Bounding Box Size, Relative Offset and Relative Size](#bounding-box) for more information. <br>:label: New in version 3.0
-
+Feature Index | | H5T_NATIVE_INT32 | (1, 1) | Index of feature from particle analysis. <br>:label: New in version 5.0
+Feature Parent Index | | H5T_NATIVE_INT32 | (1, 1) | If the feature was reacquired during a particle analysis acquisition, this index corresponds to the index of the parent feature. If a feature was not reacquired, the Feature Parent Index has a value of -1. <br>:label: New in version 5.0
+Feature Reconstructed | | H5T_NATIVE_BOOL | (1, 1) | Whether the feature from particle analysis was reconstructed. <br>:label: New in version 5.0
 
 #### <a name="stage-position"></a> Stage Position Group Specification
 
@@ -186,6 +211,18 @@ Y | yes | H5T_NATIVE_FLOAT | (1, 1) | In millimeters <br>:label: Changed in vers
 Z | | H5T_NATIVE_FLOAT | (1, 1) | In millimeters
 Tilt | | H5T_NATIVE_FLOAT | (1, 1) | Tilt angle of the stage in radians
 Rotation | | H5T_NATIVE_FLOAT | (1, 1) | Rotation angle of the stage in radians
+
+#### <a name="feature"></a> Feature Group Specification
+
+:label: New in version 5.0
+
+The Feature Group contains the following datasets.
+
+**Dataset Name** | **Mandatory** | **HDF5 Type** | **Dimension (row, column)** | **Comment**
+--- | --- | --- | --- | ---
+Phase Index | | H5T_NATIVE_INT32 | (1, 1) | Index of the phase of the feature. If no phase was detected, the Phase Index has a value of -1.
+Class | | H5T_STRING | (1, 1) | Primary classification of the feature.
+Subclasses | | H5T_STRING | (*, 1) | Addition sub-classification(s) of the feature.
 
 #### <a name="bounding-box"></a> Definition of Bounding Box Size, Relative Offset and Relative Size
 
@@ -229,6 +266,8 @@ Pattern Center Y | | H5T_NATIVE_FLOAT | (size, 1) | Pattern center Y position sc
 Detector Distance | | H5T_NATIVE_FLOAT | (size, 1) | Detector distance scaled to the width of the image.
 Beam Position X | | H5T_NATIVE_FLOAT | (size, 1) | X position of the beam in the real-world (in micrometers). The origin is in the center of the image, and a mathematical Y axis that is positive when going from bottom to top
 Beam Position Y | | H5T_NATIVE_FLOAT | (size, 1) | Y position of the beam in the real-world (in micrometers). The origin is in the center of the image, and a mathematical Y axis that is positive when going from bottom to top
+Unprocessed Patterns | | H5T_NATIVE_INT16 | (size, height, width) | Raw patterns without any background subtraction. The 2nd and 3rd dimension of the dataset correspond to the correspond to the height and width of the patterns, respectively. They also match the **Pattern Height** and **Pattern Width** datasets in the Header. This dataset uses [LZF compression](https://portal.hdfgroup.org/display/support/HDF5+Filter+Plugins). <br>:label: New in version 5.0
+Processed Patterns | | H5T_NATIVE_UINT8 | (size, height, width) | Patterns after background subtraction. See **Static Background Correction** and **Auto Background Correction** datasets in the Header. The 2nd and 3rd dimension of the dataset correspond to the correspond to the height and width of the patterns, respectively. They also match the **Pattern Height** and **Pattern Width** datasets in the Header. This dataset uses [LZF compression](https://portal.hdfgroup.org/display/support/HDF5+Filter+Plugins). <br>:label: New in version 5.0
 
 #### <a name="ebsd-header"></a> Header Group Specification
 
@@ -253,11 +292,13 @@ Number Frames Averaged | | H5T_NATIVE_INT32 | (1, 1) |
 Pattern Width | | H5T_NATIVE_INT32 | (1, 1) | Width of diffraction pattern images in pixels
 Pattern Height | | H5T_NATIVE_INT32 | (1, 1) | Height of diffraction pattern images in pixels
 Static Background Correction | | H5T_NATIVE_HBOOL | (1, 1) | Whether a static background correction was applied
+Processed Static Background | | H5T_NATIVE_UINT8 | (height, width) | Image used for the static background correction. The height and width correspond to the **Pattern Height** and **Pattern Width** datasets, respectively. <br>:label: New in version 5.0
+Unprocessed Static Background | | H5T_NATIVE_INT16 | (height, width) | Image used for the static background correction. The height and width correspond to the **Pattern Height** and **Pattern Width** datasets, respectively. <br>:label: New in version 5.0
 Auto Background Correction | | H5T_NATIVE_HBOOL | (1, 1) | Whether an automatic background correction was applied
 Hough Resolution | | H5T_NATIVE_INT32 | (1, 1) | &Delta;&rho; is equal to 1 / (2 * Hough Resolution + 1) and &Delta;&theta; is equal to &pi; / (2 * Hough Resolution + 1)
-Band Detection Mode | | H5T_STRING | (1, 1) | Either _Center_ or _Edge_
+Band Detection Mode | | H5T_STRING | (1, 1) | Either _Center_ or _Edge_, if the **Indexing Mode** is _Standard BD_.
 Number Bands Detected | | H5T_NATIVE_INT32 | (1, 1) |
-Indexing Mode | | H5T_STRING | (1, 1) | Either _Optimized - EBSD_, _Optimized - TKD_ or _Refined Accuracy_
+Indexing Mode | | H5T_STRING | (1, 1) | Either _Standard BD_, _Optimized BD_ or _Refined Accuracy_. In **Version** 3.0 and earlier, either _Optimized - EBSD_, _Optimized - TKD_ or _Refined Accuracy_.
 Hit Rate | | H5T_NATIVE_FLOAT | (1, 1) | Hit rate, percentage of indexed pixels
 Acquisition Time | | H5T_NATIVE_FLOAT | (1, 1) | In seconds
 Acquisition Speed | | H5T_NATIVE_FLOAT | (1, 1) | In pixels per second <br>:label: New in version 2.0
@@ -301,18 +342,21 @@ The absolute crystal orientation is given by the orientation of the crystal (CS2
 
 #### <a name="eds-data"></a> Data Group Specification ####
 
-The number of rows (first dimension of array) of all datasets is equal to the size of the acquisition. For example, width x height for maps and length for line scans.
+The number of rows (first dimension of array) of all datasets is equal to the size of the acquisition. For example, width x height for maps, length for line scans and 1 for single point.
 In other words, it is equal to the total number of pixels in the acquisition.
 
-The EDS Data Group contains at least one of the following groups, but may also contain two or all three.
+The EDS Data Group contains at least one of the following groups.
 
 **Group Name** | **Mandatory** | **Comment**
 --- | --- | ---
 Window Integral | | Contains one dataset for each element and X-ray line analysed (e.g. Al Ka1). Each value (stored as H5T_NATIVE_FLOAT) corresponds to the integral of the raw X-ray counts over an energy window divided by the live time. The units are counts per second.
 Peak Area | | Contains one dataset for each element and X-ray line analysed (e.g. Al K series). Each value (stored as H5T_NATIVE_FLOAT) corresponds to the fitted peak area divided by the live time. The units are counts per second.
 Composition | | Contains one dataset for each element analysed (e.g. Al). Each value (stored as H5T_NATIVE_FLOAT) corresponds to the concentration, expressed in wt%.
+Composition Sigma | | Contains one dataset for each element analysed (e.g. Al). Each value (stored as H5T_NATIVE_FLOAT) corresponds to the uncertainty on the concentration (1-sigma), expressed in wt%. <br>:label: New in version 5.0
+Apparent Concentration | | Contains one dataset for each element analysed (e.g. Al). Each value (stored as H5T_NATIVE_FLOAT) corresponds to the first estimate of the concentration of an element before any matrix corrections are calculated and applied, expressed in wt%. The apparent concentration is defined as (intensity sample) / (intensity standard) * (wt.% standard). <br>:label: New in version 5.0
+K Ratio | | Contains one dataset for each element analysed (e.g. Al). Each value (stored as H5T_NATIVE_FLOAT) corresponds to the k-ratio, defined as (intensity sample) / (intensity standard). <br>:label: New in version 5.0
 
-Each dataset in the Window Integral and Peak Area groups has the following attributes.
+Each dataset in the Window Integral and Peak Area groups have the following attributes.
 
 **Attribute Name** | **Mandatory** | **HDF5 Type** | **Dimension (row, column)** | **Comment**
 --- | --- | --- | --- | ---
@@ -324,7 +368,7 @@ Upper Value | yes | H5T_NATIVE_FLOAT | (1, 1) | Upper value of the palette assoc
 Upper Color | yes | H5T_NATIVE_UINT8 | (1, 3) | Three columns for the RGB values of the color associated with the upper value <br>:label: New in version 2.0
 Gamma | yes | H5T_NATIVE_FLOAT | (1, 1) | One over the exponent of the [gamma correction](https://en.wikipedia.org/wiki/Gamma_correction) used to create the palette associated with this dataset: I' = I ^ (1 / gamma), where I is the intensity and I', the corrected intensity <br>:label: New in version 2.0
 
-Each dataset in the Composition group has the following attributes:
+Each dataset in the Composition, Composition Sigma, K Ratio, Apparent Concentration groups have the following attributes:
 
 **Attribute Name** | **Mandatory** | **HDF5 Type** | **Dimension (row, column)** | **Comment**
 --- | --- | --- | --- | ---
@@ -343,6 +387,7 @@ X | | H5T_NATIVE_FLOAT | (size, 1) | X position of each pixel in micrometers (or
 Y | | H5T_NATIVE_FLOAT | (size, 1) | Y position of each pixel in micrometers (origin: top left corner)
 Live Time | yes | H5T_NATIVE_FLOAT | (size, 1) | In seconds
 Real Time | | H5T_NATIVE_FLOAT | (size, 1) | In seconds
+Spectrum | | H5T_NATIVE_INT32 | (size, channels) | Spectrum of each pixel, with the raw intensities in counts. See **Number Channels** in the Header for the 2nd dimension. This dataset uses [LZF compression](https://portal.hdfgroup.org/display/support/HDF5+Filter+Plugins). <br>:label: New in version 5.0
 
 #### <a name="eds-header"></a> Header Group Specification ####
 
@@ -386,6 +431,22 @@ All images in the Data Group have the same dimensions.
 SE | | Contains electron image(s) acquired by a secondary electron detector(s)
 BSE | | Contains electron image(s) acquired by a backscatter electron detector(s)
 FSE | | Contains electron image(s) acquired by forward scatter electron detector(s)
+
+:label: New in version 5.0
+
+The Electron Image Data Group may also contain a Feature group with the following datasets based on the morphological measurements during particle analysis.
+
+**Dataset Name** | **Mandatory** | **HDF5 Type** | **Dimension (row, column)** | **Comment**
+--- | --- | --- | --- | ---
+Area | | H5T_NATIVE_FLOAT | (1, 1) | The area of the feature, in square micrometers.
+Aspect Ratio | | H5T_NATIVE_FLOAT | (1, 1) | The ratio of the length of the feature in pixels to the breadth of the feature in pixels.
+Breadth | | H5T_NATIVE_FLOAT | (1, 1) | The shortest linear dimension of the feature, determined as a result of the determination of the feret diameter, in micrometers.
+Direction | | H5T_NATIVE_FLOAT | (1, 1) | The angular direction of the line corresponding through the feret diameter, as measured counterclockwise from the origin in radians.
+Equivalent Circular Diameter | | H5T_NATIVE_FLOAT | (1, 1) | The diameter of the circle with an area equal to the area of the detected feature, in micrometers.
+Length | | H5T_NATIVE_FLOAT | (1, 1) | The longest linear dimension of the feature, determined as a result of the determination of the Feret diameter, in micrometers.
+Perimeter | | H5T_NATIVE_FLOAT | (1, 1) | The perimeter of the feature, determined by the sum of all the incremental steps in the diagonal and orthogonal vector directions in traversing the feature's boundary pixels (discrete Crofton formula result), in micrometers.
+Shape | | H5T_NATIVE_FLOAT | (1, 1) | A quantified approximation to the shape of the feature, equal to the perimeter squared, divided by 4 * Pi * Area. A shape of 1 corresponds to a perfectly circular feature. More elongated features are represented by greater magnitude values of shape.
+Gray Level Mean | | H5T_NATIVE_FLOAT | (1, 1) | Mean gray level value for the feature.
 
 #### <a name="electronimage-header"></a> Header Group Specification ####
 
