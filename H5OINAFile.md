@@ -319,8 +319,8 @@ Laue Group | yes | H5T_NATIVE_INT32 | (1, 1) | Laue group index. The attribute *
 Space Group | | H5T_NATIVE_INT32 | (1, 1) | Space group index. The attribute **Symbol** contains the string representation, for example _P m -3 m_.
 Number Reflectors | | H5T_NATIVE_INT32 | (1, 1) | Number of reflectors
 Color | | H5T_NATIVE_UINT8 | (1, 3) | Three columns for the RGB values
-Database Id | | H5T_NATIVE_UINT8 | (1, 1) | Id of the database where this phase was taken from <br>:label: New in version 2.0
-Phase Id | | H5T_NATIVE_UINT8 | (1, 1) | Id of the phase in the database <br>:label: New in version 2.0
+Database Id | | H5T_NATIVE_INT32 | (1, 1) | Id of the database where this phase was taken from <br>:label: New in version 2.0
+Phase Id | | H5T_NATIVE_INT32 | (1, 1) | Id of the phase in the database <br>:label: New in version 2.0
 
 #### <a name="coordinate-systems"></a> Definition of Coordinate Systems
 
@@ -475,7 +475,7 @@ The Layered Image Data Group contains the following datasets.
 
 **Dataset Name** | **Mandatory** | **HDF5 Type** | **Dimension (row, column)** | **Comment**
 --- | --- | --- | --- | ---
-Color | yes | H5T_NATIVE_UINT8 | (1, 3) | Three columns for the RGB values. The dataset has two attributes: **Layers** and **Weights**. **Layers** attribute indicates the name of the layers, whereas **Weights** attribute gives their relative weight.
+Color | yes | H5T_NATIVE_UINT8 | (size, 3) | Three columns for the RGB values. The dataset has two attributes: **Layers** and **Weights**. **Layers** attribute indicates the name of the layers, whereas **Weights** attribute gives their relative weight.
 
 #### <a name="layeredimage-header"></a> Header Group Specification ####
 
