@@ -68,7 +68,7 @@ This file format can be used to export:
 
 * 6.0
   * Add support for Unity, including export of multidetector systems with Unity and an auxillary detector.
-  * Add specimen orientaion Euler and scanning rotation angles for EBSD data.
+  * Add specimen orientation Euler and scanning rotation angles for EBSD data.
 * 5.0
   * Add support for electron backscatter diffraction patterns (EBSPs)
   * Add support for feature/particle analysis
