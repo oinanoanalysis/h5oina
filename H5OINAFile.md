@@ -358,9 +358,9 @@ The EDS Data Group contains at least one of the following groups.
 Window Integral | | Contains one dataset for each element and X-ray line analysed (e.g. Al Ka1). Each value (stored as H5T_NATIVE_FLOAT) corresponds to the integral of the raw X-ray counts over an energy window divided by the live time. The units are counts per second.
 Peak Area | | Contains one dataset for each element and X-ray line analysed (e.g. Al K series). Each value (stored as H5T_NATIVE_FLOAT) corresponds to the fitted peak area divided by the live time. The units are counts per second.
 Composition | | Contains one dataset for each element analysed (e.g. Al). Each value (stored as H5T_NATIVE_FLOAT) corresponds to the concentration, expressed in wt%.
-Composition Sigma | | Contains one dataset for each element analysed (e.g. Al). Each value (stored as H5T_NATIVE_FLOAT) corresponds to the uncertainty on the concentration (1-sigma), expressed in wt%. <br>:label: New in version 5.0
-Apparent Concentration | | Contains one dataset for each element analysed (e.g. Al). Each value (stored as H5T_NATIVE_FLOAT) corresponds to the first estimate of the concentration of an element before any matrix corrections are calculated and applied, expressed in wt%. The apparent concentration is defined as (intensity sample) / (intensity standard) * (wt.% standard). <br>:label: New in version 5.0
-K Ratio | | Contains one dataset for each element analysed (e.g. Al). Each value (stored as H5T_NATIVE_FLOAT) corresponds to the k-ratio, defined as (intensity sample) / (intensity standard). <br>:label: New in version 5.0
+Composition Sigma | | Contains one dataset for each element analysed (e.g. Al). Each value (stored as H5T_NATIVE_FLOAT) corresponds to the uncertainty on the concentration (1-sigma), expressed in wt%. Only available for Feature data. <br>:label: New in version 5.0
+Apparent Concentration | | Contains one dataset for each element analysed (e.g. Al). Each value (stored as H5T_NATIVE_FLOAT) corresponds to the first estimate of the concentration of an element before any matrix corrections are calculated and applied, expressed in wt%. The apparent concentration is defined as (intensity sample) / (intensity standard) * (wt.% standard). Only available for Feature data. <br>:label: New in version 5.0
+K Ratio | | Contains one dataset for each element analysed (e.g. Al). Each value (stored as H5T_NATIVE_FLOAT) corresponds to the k-ratio, defined as (intensity sample) / (intensity standard). Only available for Feature data. <br>:label: New in version 5.0
 
 Each dataset in the Window Integral and Peak Area groups have the following attributes.
 
@@ -393,7 +393,7 @@ X | | H5T_NATIVE_FLOAT | (size, 1) | X position of each pixel in micrometers (or
 Y | | H5T_NATIVE_FLOAT | (size, 1) | Y position of each pixel in micrometers (origin: top left corner)
 Live Time | yes | H5T_NATIVE_FLOAT | (size, 1) | In seconds
 Real Time | | H5T_NATIVE_FLOAT | (size, 1) | In seconds
-Spectrum | | H5T_NATIVE_INT32 | (size, channels) | Spectrum of each pixel, with the raw intensities in counts. See **Number Channels** in the Header for the 2nd dimension. This dataset uses [LZF compression](https://portal.hdfgroup.org/display/support/HDF5+Filter+Plugins). <br>:label: New in version 5.0
+Spectrum | | H5T_NATIVE_INT32 | (size, channels) | Spectrum of each pixel, with the raw intensities in counts. See **Number Channels** in the Header for the 2nd dimension. This dataset uses [LZF compression](https://portal.hdfgroup.org/display/support/HDF5+Filter+Plugins). Only available for Feature data. <br>:label: New in version 5.0
 
 #### <a name="eds-header"></a> Header Group Specification ####
 
