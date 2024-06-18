@@ -68,7 +68,6 @@ This file format can be used to export:
 
 * 6.0
   * Add support for Unity, including export of multidetector systems with Unity and an auxillary detector.
-  * Add specimen orientation Euler and scanning rotation angles for EBSD data.
 * 5.0
   * Add support for electron backscatter diffraction patterns (EBSPs)
   * Add support for feature/particle analysis
@@ -517,8 +516,8 @@ The Data Processing Header Group contains the following datasets.
 Specimen Symmetry | | H5T_STRING | (1, 1) | Triclinic, Monoclinic or Orthorhombic
 Sample Primary Direction Labels | | H5T_STRING | (3, 1) | Labels associated to the directions of the Sample-Primary coordinate system (CS0). See [Definition of Coordinate Systems](#coordinate-systems) for more information. <br>:label: New in version 3.0
 Sample Surface Direction Labels | | H5T_STRING | (3, 1) | Labels associated to the directions of the Sample-Surface coordinate system (CS1). See [Definition of Coordinate Systems](#coordinate-systems) for more information. <br>:label: New in version 3.0
-Specimen Orientation Euler | | H5T_NATIVE_FLOAT | (1, 3) | Orientation of Sample-Surface (CS1) to Sample-Primary (CS0). See [Definition of Coordinate Systems](#coordinate-systems) for more information. <br>:label: New in version 6.0
-Scanning Rotation Angle | | H5T_NATIVE_FLOAT | (1, 1) | Angle between the specimen tilt axis and the scanning tilt axis in radians. If NaN, the angle is unknown. <br>:label: New in version 6.0
+Specimen Orientation Euler | | H5T_NATIVE_FLOAT | (1, 3) | Orientation of Sample-Surface (CS1) to Sample-Primary (CS0). See [Definition of Coordinate Systems](#coordinate-systems) for more information.
+Scanning Rotation Angle | | H5T_NATIVE_FLOAT | (1, 1) | Angle between the specimen tilt axis and the scanning tilt axis in radians. If NaN, the angle is unknown. 
 
 The Data Processing Header Group only contains the following group:
 
