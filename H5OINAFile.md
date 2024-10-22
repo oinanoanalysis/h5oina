@@ -7,6 +7,8 @@ Version | Release AZtec Version
 3.0 | AZtec 5.0
 4.0 | AZtec 5.1
 5.0 | AZtec 6.0
+6.0 | AZtec 6.1 SP1
+7.0 | AZtec 6.2
 
 This document details the specification for the Oxford Instruments NanoAnalysis HDF5 file format (_.h5oina_).
 It is using the [Hierarchical Data Format 5](http://www.hdfgroup.org) file format library, which has several implementations in different programming languages.
@@ -16,7 +18,9 @@ More details about the guiding principles used in the design of this file format
 This file format can be used to export:
  - Electron images
  - EDS maps
+ - EDS smartMaps
  - EDS line scans
+ - EDS smartLines
  - EBSD maps
  - EBSD line scans
  - Combined EDS/EBSD maps
@@ -65,6 +69,10 @@ This file format can be used to export:
 
 ## <a name="whatsnew"></a> What's New
 
+* 7.0
+  * Add the ability to export spectral data both EDS smartMaps and EDS smartLines.
+* 6.0
+  * Add support for Unity, including export of multidetector systems with Unity and an auxillary detector.
 * 5.0
   * Add support for electron backscatter diffraction patterns (EBSPs)
   * Add support for feature/particle analysis
@@ -146,7 +154,7 @@ The techniques can be, but not restrictive to:
 **Group Name** | **Mandatory** | **Comment**
 --- | --- | ---
 [EBSD](#ebsd) | | Contains one EBSD acquisition
-[EDS](#eds) | | Contains one EDS acquisition
+[EDS](#eds) | | Contains one EDS acquisition, if there are multiple EDS acquistions e.g. from a multidetector with Unity systems they are numbered EDS1, EDS2 etc. <br>:label: Labelling new in version 6.0
 [Electron Image](#electronimage) | | Contains electron images associated with the EDS and/or EBSD acquisition <br>:label: New in version 2.0
 [Layered Image](#layeredimage) | | Contains composite images made of layers from EDS, EBSD and/or electron images <br>:label: New in version 4.0
 [Data Processing](#dataprocessing) | | Contains results created by data processing software, such as AZtec Crystal <br>:label: New in version 2.0
@@ -251,15 +259,15 @@ The EBSD Data Group contains the following datasets.
 
 **Dataset Name** | **Mandatory** | **HDF5 Type** | **Dimension (row, column)** | **Comment**
 --- | --- | --- | --- | ---
-Phase | yes | H5T_NATIVE_INT32 | (size, 1) | Index of phase, 0 if not indexed
+Phase | yes | H5T_NATIVE_UINT8 | (size, 1) | Index of phase, 0 if not indexed
 X | | H5T_NATIVE_FLOAT | (size, 1) | X position of each pixel in micrometers (origin: top left corner)
 Y | | H5T_NATIVE_FLOAT | (size, 1) | Y position of each pixel in micrometers (origin: top left corner)
-Bands | | H5T_NATIVE_INT32 | (size, 1) | Number of bands positively indexed
-Error | | H5T_NATIVE_INT32 | (size, 1) | Error code. Some of these codes are historical and no longer apply. NotAnalyzed=0, Success=1, NoSolution=2, LowBandContrast=3, LowBandSlope=4, HighMAD=5, UnexpectedError=6, Replaced=7
+Bands | | H5T_NATIVE_UINT8 | (size, 1) | Number of bands positively indexed
+Error | | H5T_NATIVE_UINT8 | (size, 1) | Error code. Some of these codes are historical and no longer apply. NotAnalyzed=0, Success=1, NoSolution=2, LowBandContrast=3, LowBandSlope=4, HighMAD=5, UnexpectedError=6, Replaced=7
 Euler | yes | H5T_NATIVE_FLOAT | (size, 3) | Orientation of Crystal (CS2) to Sample-Surface (CS1). See [Definition of Coordinate Systems](#coordinate-systems) for more information.
 Mean Angular Deviation | | H5T_NATIVE_FLOAT | (size, 1) | In radians
-Band Contrast | | H5T_NATIVE_INT32 | (size, 1) |
-Band Slope | | H5T_NATIVE_INT32 | (size, 1) |
+Band Contrast | | H5T_NATIVE_UINT8 | (size, 1) |
+Band Slope | | H5T_NATIVE_UINT8 | (size, 1) |
 Pattern Quality | | H5T_NATIVE_FLOAT | (size, 1) |
 Pattern Center X | | H5T_NATIVE_FLOAT | (size, 1) | Pattern center X position scaled to the width of the image. This means that an X value of 0.5 is in the middle on the horizontal axis of the image. The origin is in the bottom left corner.
 Pattern Center Y | | H5T_NATIVE_FLOAT | (size, 1) | Pattern center Y position scaled to the width of the image. Note that for a non-square image a Y value of 0.5 is _not_ in the center of the vertical axis of the image. The origin is in the bottom left corner.
@@ -342,6 +350,8 @@ The absolute crystal orientation is given by the orientation of the crystal (CS2
 
 #### <a name="eds-data"></a> Data Group Specification ####
 
+There will either be one data group labelled EDS or multiple data groups labelled EDS1, EDS2 etc (for multidetector systems including Unity data).
+
 The number of rows (first dimension of array) of all datasets is equal to the size of the acquisition. For example, width x height for maps, length for line scans and 1 for single point.
 In other words, it is equal to the total number of pixels in the acquisition.
 
@@ -352,9 +362,9 @@ The EDS Data Group contains at least one of the following groups.
 Window Integral | | Contains one dataset for each element and X-ray line analysed (e.g. Al Ka1). Each value (stored as H5T_NATIVE_FLOAT) corresponds to the integral of the raw X-ray counts over an energy window divided by the live time. The units are counts per second.
 Peak Area | | Contains one dataset for each element and X-ray line analysed (e.g. Al K series). Each value (stored as H5T_NATIVE_FLOAT) corresponds to the fitted peak area divided by the live time. The units are counts per second.
 Composition | | Contains one dataset for each element analysed (e.g. Al). Each value (stored as H5T_NATIVE_FLOAT) corresponds to the concentration, expressed in wt%.
-Composition Sigma | | Contains one dataset for each element analysed (e.g. Al). Each value (stored as H5T_NATIVE_FLOAT) corresponds to the uncertainty on the concentration (1-sigma), expressed in wt%. <br>:label: New in version 5.0
-Apparent Concentration | | Contains one dataset for each element analysed (e.g. Al). Each value (stored as H5T_NATIVE_FLOAT) corresponds to the first estimate of the concentration of an element before any matrix corrections are calculated and applied, expressed in wt%. The apparent concentration is defined as (intensity sample) / (intensity standard) * (wt.% standard). <br>:label: New in version 5.0
-K Ratio | | Contains one dataset for each element analysed (e.g. Al). Each value (stored as H5T_NATIVE_FLOAT) corresponds to the k-ratio, defined as (intensity sample) / (intensity standard). <br>:label: New in version 5.0
+Composition Sigma | | Contains one dataset for each element analysed (e.g. Al). Each value (stored as H5T_NATIVE_FLOAT) corresponds to the uncertainty on the concentration (1-sigma), expressed in wt%. Only available for Feature data. <br>:label: New in version 5.0
+Apparent Concentration | | Contains one dataset for each element analysed (e.g. Al). Each value (stored as H5T_NATIVE_FLOAT) corresponds to the first estimate of the concentration of an element before any matrix corrections are calculated and applied, expressed in wt%. The apparent concentration is defined as (intensity sample) / (intensity standard) * (wt.% standard). Only available for Feature data. <br>:label: New in version 5.0
+K Ratio | | Contains one dataset for each element analysed (e.g. Al). Each value (stored as H5T_NATIVE_FLOAT) corresponds to the k-ratio, defined as (intensity sample) / (intensity standard). Only available for Feature data. <br>:label: New in version 5.0
 
 Each dataset in the Window Integral and Peak Area groups have the following attributes.
 
@@ -387,7 +397,7 @@ X | | H5T_NATIVE_FLOAT | (size, 1) | X position of each pixel in micrometers (or
 Y | | H5T_NATIVE_FLOAT | (size, 1) | Y position of each pixel in micrometers (origin: top left corner)
 Live Time | yes | H5T_NATIVE_FLOAT | (size, 1) | In seconds
 Real Time | | H5T_NATIVE_FLOAT | (size, 1) | In seconds
-Spectrum | | H5T_NATIVE_INT32 | (size, channels) | Spectrum of each pixel, with the raw intensities in counts. See **Number Channels** in the Header for the 2nd dimension. This dataset uses [LZF compression](https://portal.hdfgroup.org/display/support/HDF5+Filter+Plugins). <br>:label: New in version 5.0
+Spectrum | | H5T_NATIVE_INT32 | (size, channels) | Spectrum of each pixel, with the raw intensities in counts. Each pixel spectrum is represented by one row. Data set is 2D even if the spectrum data cube is 3D. See **Number Channels** in the Header for the 2nd dimension. This dataset uses [LZF compression](https://portal.hdfgroup.org/display/support/HDF5+Filter+Plugins). Now available for all EDS data sets <br>:label: New in version 7.0
 
 #### <a name="eds-header"></a> Header Group Specification ####
 
@@ -498,7 +508,7 @@ The Data Processing Data Group contains the following datasets, which is a subse
 
 **Dataset Name** | **Mandatory** | **HDF5 Type** | **Dimension (row, column)** | **Comment**
 --- | --- | --- | --- | ---
-Phase | yes | H5T_NATIVE_INT32 | (size, 1) | Index of phase, 0 if not indexed
+Phase | yes | H5T_NATIVE_UINT8 | (size, 1) | Index of phase, 0 if not indexed
 Euler | yes | H5T_NATIVE_FLOAT | (size, 3) | Orientation of Crystal (CS2) to Sample-Surface (CS1). See [Definition of Coordinate Systems](#coordinate-systems) for more information.
 Mean Angular Deviation | | H5T_NATIVE_FLOAT | (size, 1) | In radians
 
@@ -511,6 +521,8 @@ The Data Processing Header Group contains the following datasets.
 Specimen Symmetry | | H5T_STRING | (1, 1) | Triclinic, Monoclinic or Orthorhombic
 Sample Primary Direction Labels | | H5T_STRING | (3, 1) | Labels associated to the directions of the Sample-Primary coordinate system (CS0). See [Definition of Coordinate Systems](#coordinate-systems) for more information. <br>:label: New in version 3.0
 Sample Surface Direction Labels | | H5T_STRING | (3, 1) | Labels associated to the directions of the Sample-Surface coordinate system (CS1). See [Definition of Coordinate Systems](#coordinate-systems) for more information. <br>:label: New in version 3.0
+Specimen Orientation Euler | | H5T_NATIVE_FLOAT | (1, 3) | Orientation of Sample-Surface (CS1) to Sample-Primary (CS0). See [Definition of Coordinate Systems](#coordinate-systems) for more information.
+Scanning Rotation Angle | | H5T_NATIVE_FLOAT | (1, 1) | Angle between the specimen tilt axis and the scanning tilt axis in radians. If NaN, the angle is unknown. 
 
 The Data Processing Header Group only contains the following group:
 
