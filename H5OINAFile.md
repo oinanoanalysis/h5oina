@@ -70,6 +70,10 @@ This file format can be used to export:
 ## <a name="whatsnew"></a> What's New
 
 * 7.0
+  * Add various optional datasets to EBSD Header group, including Acquired Pattern Width and Height to support reduced-size patterns export
+  * Add Phase Group Id, Pseudo Symmetry and Reference Spectrum datasets to EBSD Phase group
+  * Add Processed and Unprocessed Virtual Forescatter Detector Images datasets to EBSD Data group
+  * Add Mixing Mode attribute on BSE electron image dataset that contains the topography mode used to acquire that image with Unity systems
   * Add the ability to export spectral data both EDS smartMaps and EDS smartLines.
 * 6.0
   * Add support for Unity, including export of multidetector systems with Unity and an auxillary detector.
@@ -276,6 +280,8 @@ Beam Position X | | H5T_NATIVE_FLOAT | (size, 1) | X position of the beam in the
 Beam Position Y | | H5T_NATIVE_FLOAT | (size, 1) | Y position of the beam in the real-world (in micrometers). The origin is in the center of the image, and a mathematical Y axis that is positive when going from bottom to top
 Unprocessed Patterns | | H5T_NATIVE_INT16 | (size, height, width) | Raw patterns without any background subtraction. The 2nd and 3rd dimension of the dataset correspond to the correspond to the height and width of the patterns, respectively. They also match the **Pattern Height** and **Pattern Width** datasets in the Header. This dataset uses [LZF compression](https://portal.hdfgroup.org/display/support/HDF5+Filter+Plugins). <br>:label: New in version 5.0
 Processed Patterns | | H5T_NATIVE_UINT8 | (size, height, width) | Patterns after background subtraction. See **Static Background Correction** and **Auto Background Correction** datasets in the Header. The 2nd and 3rd dimension of the dataset correspond to the correspond to the height and width of the patterns, respectively. They also match the **Pattern Height** and **Pattern Width** datasets in the Header. This dataset uses [LZF compression](https://portal.hdfgroup.org/display/support/HDF5+Filter+Plugins). <br>:label: New in version 5.0
+Unprocessed Virtual Forescatter Detector Images | | H5T_NATIVE_INT16 | (size, height, width) | Raw virtual forescatter detector images without any background subtraction. <br>:label: New in version 7.0
+Processed Virtual Forescatter Detector Images | | H5T_NATIVE_UINT8 | (size, height, width) | Virtual forescatter detector images after background subtraction. <br>:label: New in version 7.0
 
 #### <a name="ebsd-header"></a> Header Group Specification
 
@@ -293,12 +299,18 @@ Detector Orientation Euler | | H5T_NATIVE_FLOAT | (1, 3) | Orientation of Detect
 Detector Insertion Distance | | H5T_NATIVE_FLOAT | (1, 1) | Insertion distance of EBSD detector in millimeters
 Lens Distortion | | H5T_NATIVE_FLOAT | (1, 1) |
 Lens Field View | | H5T_NATIVE_FLOAT | (1, 1) | In millimeters
-Camera Binning Mode | | H5T_STRING | (1, 1) | For example, "4x4"
+Camera Mode | | H5T_STRING | (1, 1) | For example, "4x4" <br>:label: Changed from "Camera Binning Mode" in version 7.0
 Camera Exposure Time | | H5T_NATIVE_FLOAT | (1, 1) | In milliseconds
 Camera Gain | | H5T_NATIVE_FLOAT | (1, 1) |
 Number Frames Averaged | | H5T_NATIVE_INT32 | (1, 1) |
-Pattern Width | | H5T_NATIVE_INT32 | (1, 1) | Width of diffraction pattern images in pixels
-Pattern Height | | H5T_NATIVE_INT32 | (1, 1) | Height of diffraction pattern images in pixels
+Detector Serial Number | | H5T_STRING | (1, 1) | :label: New in version 7.0
+Acquired Pattern Width | | H5T_NATIVE_INT32 | (1, 1) | Width of the acquired diffraction pattern images in pixels <br>:label: New in version 7.0
+Acquired Pattern Height | | H5T_NATIVE_INT32 | (1, 1) | Height of the acquired diffraction pattern images in pixels <br>:label: New in version 7.0
+Patterns Storage Condition | | H5T_STRING | (1, 1) | :label: New in version 7.0
+Pattern Width | | H5T_NATIVE_INT32 | (1, 1) | Width of the stored diffraction pattern images in pixels
+Pattern Height | | H5T_NATIVE_INT32 | (1, 1) | Height of the stored diffraction pattern images in pixels
+Virtual Forescatter Detector Image Width | | H5T_NATIVE_INT32 | (1, 1) | Width of the virtual forescatter detector images in pixels <br>:label: New in version 7.0
+Virtual Forescatter Detector Image Height | | H5T_NATIVE_INT32 | (1, 1) | Height of the virtual forescatter detector images in pixels <br>:label: New in version 7.0
 Static Background Correction | | H5T_NATIVE_HBOOL | (1, 1) | Whether a static background correction was applied
 Processed Static Background | | H5T_NATIVE_UINT8 | (height, width) | Image used for the static background correction. The height and width correspond to the **Pattern Height** and **Pattern Width** datasets, respectively. <br>:label: New in version 5.0
 Unprocessed Static Background | | H5T_NATIVE_INT16 | (height, width) | Image used for the static background correction. The height and width correspond to the **Pattern Height** and **Pattern Width** datasets, respectively. <br>:label: New in version 5.0
@@ -312,6 +324,17 @@ Acquisition Time | | H5T_NATIVE_FLOAT | (1, 1) | In seconds
 Acquisition Speed | | H5T_NATIVE_FLOAT | (1, 1) | In pixels per second <br>:label: New in version 2.0
 Specimen Orientation Euler | yes | H5T_NATIVE_FLOAT | (1, 3) | Orientation of Sample-Surface (CS1) to Sample-Primary (CS0). See [Definition of Coordinate Systems](#coordinate-systems) for more information.
 Scanning Rotation Angle | yes | H5T_NATIVE_FLOAT | (1, 1) | Angle between the specimen tilt axis and the scanning tilt axis in radians. If NaN, the angle is unknown.
+Band Detection Circle Center X | | H5T_NATIVE_FLOAT | (1, 1) | Normalized to the width of the image with the origin in the top left corner <br>:label: New in version 7.0
+Band Detection Circle Center Y | | H5T_NATIVE_FLOAT | (1, 1) | Normalized to the width of the image with the origin in the top left corner <br>:label: New in version 7.0
+Band Detection Circle Radius | | H5T_NATIVE_FLOAT | (1, 1) | Normalized to the width of the image with the origin in the top left corner <br>:label: New in version 7.0
+Solution Refinement Delta Working Distance | | H5T_NATIVE_FLOAT | (1, 1) | In millimeters <br>:label: New in version 7.0
+Solution Refinement Delta Insertion Distance | | H5T_NATIVE_FLOAT | (1, 1) | In millimeters <br>:label: New in version 7.0
+Magnetic Field Correction | | H5T_NATIVE_HBOOL | (1, 1) | Whether magnetic field correction was used <br>:label: New in version 7.0
+Shadow Masking Correction | | H5T_NATIVE_HBOOL | (1, 1) | Whether shadow masking correction was used <br>:label: New in version 7.0
+Saturation Masking Correction | | H5T_NATIVE_HBOOL | (1, 1) | Whether saturation masking correction was used <br>:label: New in version 7.0
+Diffraction Spot Masking Correction | | H5T_NATIVE_HBOOL | (1, 1) | Whether diffraction spot masking correction was used <br>:label: New in version 7.0
+Use TruPhase | | H5T_NATIVE_HBOOL | (1, 1) | Whether TruPhase option was used <br>:label: New in version 7.0
+Detector Screen Type | | H5T_STRING | (1, 1) | Either _Standard_ or _NA-TKD_ <br>:label: New in version 7.0
 
 ##### <a name="ebsd-phase"></a> Phase Group Specification
 
@@ -329,6 +352,9 @@ Number Reflectors | | H5T_NATIVE_INT32 | (1, 1) | Number of reflectors
 Color | | H5T_NATIVE_UINT8 | (1, 3) | Three columns for the RGB values
 Database Id | | H5T_NATIVE_INT32 | (1, 1) | Id of the database where this phase was taken from <br>:label: New in version 2.0
 Phase Id | | H5T_NATIVE_INT32 | (1, 1) | Id of the phase in the database <br>:label: New in version 2.0
+Phase Group Id | | H5T_NATIVE_INT32 | (1, 1) | If phase grouping was defined, Id of the group associated with this phase <br>:label: New in version 7.0
+Pseudo Symmetry | | H5T_STRING | (1, 1) | If phase pseudo-symmetry was defined, the name of the pseudo-symmetry definition associated with this phase <br>:label: New in version 7.0
+Reference Spectrum | | H5T_STRING | (1, 1) | If EDS reference spectrum was defined, the name of the EDS reference spectrum associated with this phase <br>:label: New in version 7.0
 
 #### <a name="coordinate-systems"></a> Definition of Coordinate Systems
 
@@ -362,9 +388,9 @@ The EDS Data Group contains at least one of the following groups.
 Window Integral | | Contains one dataset for each element and X-ray line analysed (e.g. Al Ka1). Each value (stored as H5T_NATIVE_FLOAT) corresponds to the integral of the raw X-ray counts over an energy window divided by the live time. The units are counts per second.
 Peak Area | | Contains one dataset for each element and X-ray line analysed (e.g. Al K series). Each value (stored as H5T_NATIVE_FLOAT) corresponds to the fitted peak area divided by the live time. The units are counts per second.
 Composition | | Contains one dataset for each element analysed (e.g. Al). Each value (stored as H5T_NATIVE_FLOAT) corresponds to the concentration, expressed in wt%.
-Composition Sigma | | Contains one dataset for each element analysed (e.g. Al). Each value (stored as H5T_NATIVE_FLOAT) corresponds to the uncertainty on the concentration (1-sigma), expressed in wt%. Only available for Feature data. <br>:label: New in version 5.0
-Apparent Concentration | | Contains one dataset for each element analysed (e.g. Al). Each value (stored as H5T_NATIVE_FLOAT) corresponds to the first estimate of the concentration of an element before any matrix corrections are calculated and applied, expressed in wt%. The apparent concentration is defined as (intensity sample) / (intensity standard) * (wt.% standard). Only available for Feature data. <br>:label: New in version 5.0
-K Ratio | | Contains one dataset for each element analysed (e.g. Al). Each value (stored as H5T_NATIVE_FLOAT) corresponds to the k-ratio, defined as (intensity sample) / (intensity standard). Only available for Feature data. <br>:label: New in version 5.0
+Composition Sigma | | Contains one dataset for each element analysed (e.g. Al). Each value (stored as H5T_NATIVE_FLOAT) corresponds to the uncertainty on the concentration (1-sigma), expressed in wt%. <br>:label: New in version 5.0
+Apparent Concentration | | Contains one dataset for each element analysed (e.g. Al). Each value (stored as H5T_NATIVE_FLOAT) corresponds to the first estimate of the concentration of an element before any matrix corrections are calculated and applied, expressed in wt%. The apparent concentration is defined as (intensity sample) / (intensity standard) * (wt.% standard). <br>:label: New in version 5.0
+K Ratio | | Contains one dataset for each element analysed (e.g. Al). Each value (stored as H5T_NATIVE_FLOAT) corresponds to the k-ratio, defined as (intensity sample) / (intensity standard). <br>:label: New in version 5.0
 
 Each dataset in the Window Integral and Peak Area groups have the following attributes.
 
@@ -431,6 +457,7 @@ The Electron Image Data Group contains at least one of the following groups, but
 Each group contains one or more datasets corresponding to electron images acquired before, during or after the ED/EBSD acquisition.
 There is no requirement for the name of the datasets.
 The dataset may take different HDF5 types depending on the depth of the electron images: H5T_NATIVE_UINT8, H5T_NATIVE_UINT16, etc.
+BSE image dataset can have **Mixing Mode** attribute which takes one of the following values: _None_, _Compo_, _Topo 1_, _Topo 2_, _Inverted_. :label: Attribute added in version 7.0
 
 The number of rows (first dimension of array) of all datasets is equal to the size of the image (i.e. width x height).
 In other words, it is equal to the total number of pixels in the image.
@@ -522,7 +549,7 @@ Specimen Symmetry | | H5T_STRING | (1, 1) | Triclinic, Monoclinic or Orthorhombi
 Sample Primary Direction Labels | | H5T_STRING | (3, 1) | Labels associated to the directions of the Sample-Primary coordinate system (CS0). See [Definition of Coordinate Systems](#coordinate-systems) for more information. <br>:label: New in version 3.0
 Sample Surface Direction Labels | | H5T_STRING | (3, 1) | Labels associated to the directions of the Sample-Surface coordinate system (CS1). See [Definition of Coordinate Systems](#coordinate-systems) for more information. <br>:label: New in version 3.0
 Specimen Orientation Euler | | H5T_NATIVE_FLOAT | (1, 3) | Orientation of Sample-Surface (CS1) to Sample-Primary (CS0). See [Definition of Coordinate Systems](#coordinate-systems) for more information.
-Scanning Rotation Angle | | H5T_NATIVE_FLOAT | (1, 1) | Angle between the specimen tilt axis and the scanning tilt axis in radians. If NaN, the angle is unknown. 
+Scanning Rotation Angle | | H5T_NATIVE_FLOAT | (1, 1) | Angle between the specimen tilt axis and the scanning tilt axis in radians. If NaN, the angle is unknown.
 
 The Data Processing Header Group only contains the following group:
 
