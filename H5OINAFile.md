@@ -18,9 +18,9 @@ More details about the guiding principles used in the design of this file format
 This file format can be used to export:
  - Electron images
  - EDS maps
- - EDS smartMaps
+ - EDS maps (unprocessed spectrum data)
  - EDS line scans
- - EDS smartLines
+ - EDS line scans (unprocessed spectrum data)
  - EBSD maps
  - EBSD line scans
  - Combined EDS/EBSD maps
@@ -423,7 +423,7 @@ X | | H5T_NATIVE_FLOAT | (size, 1) | X position of each pixel in micrometers (or
 Y | | H5T_NATIVE_FLOAT | (size, 1) | Y position of each pixel in micrometers (origin: top left corner)
 Live Time | yes | H5T_NATIVE_FLOAT | (size, 1) | In seconds
 Real Time | | H5T_NATIVE_FLOAT | (size, 1) | In seconds
-Spectrum | | H5T_NATIVE_INT32 | (size, channels) | Spectrum of each pixel, with the raw intensities in counts. Each pixel spectrum is represented by one row. Data set is 2D even if the spectrum data cube is 3D. See **Number Channels** in the Header for the 2nd dimension. This dataset uses [LZF compression](https://portal.hdfgroup.org/display/support/HDF5+Filter+Plugins). Now available for all EDS data sets <br>:label: New in version 7.0
+Spectrum | | H5T_NATIVE_INT32 | (size, channels) | Spectrum of each pixel, with the raw intensities in counts. Each pixel spectrum is represented by one row. Data set is 2D even if the spectrum data cube is 3D. See **Number Channels** in the Header for the 2nd dimension. This dataset uses [LZF compression](https://portal.hdfgroup.org/display/support/HDF5+Filter+Plugins). Now available for all EDS data maps, linescans and feature data. <br>:label: New in version 7.0
 
 #### <a name="eds-header"></a> Header Group Specification ####
 
