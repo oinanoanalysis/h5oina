@@ -9,6 +9,7 @@ Version | Release AZtec Version
 5.0 | AZtec 6.0
 6.0 | AZtec 6.1 SP1
 7.0 | AZtec 6.2
+8.0 | AZtec 6.3
 
 This document details the specification for the Oxford Instruments NanoAnalysis HDF5 file format (_.h5oina_).
 It is using the [Hierarchical Data Format 5](http://www.hdfgroup.org) file format library, which has several implementations in different programming languages.
@@ -18,9 +19,9 @@ More details about the guiding principles used in the design of this file format
 This file format can be used to export:
  - Electron images
  - EDS maps
- - EDS smartMaps
+ - EDS maps (unprocessed spectrum data)
  - EDS line scans
- - EDS smartLines
+ - EDS line scans (unprocessed spectrum data)
  - EBSD maps
  - EBSD line scans
  - Combined EDS/EBSD maps
@@ -69,12 +70,16 @@ This file format can be used to export:
 
 ## <a name="whatsnew"></a> What's New
 
+* 8.0
+  * Remove LZF compression filter for EBSD Patterns datasets in order to increase writing/reading speed
+  * Add LAM Field Coordinates X,Y and Index datasets to the Data group of EBSD, EDS and Electron Image techniques (used for montaged EBSD maps, EDS maps and electron images)
 * 7.0
   * Add various optional datasets to EBSD Header group, including Acquired Pattern Width and Height to support reduced-size patterns export
   * Add Phase Group Id, Pseudo Symmetry and Reference Spectrum datasets to EBSD Phase group
   * Add Processed and Unprocessed Virtual Forescatter Detector Images datasets to EBSD Data group
   * Add Mixing Mode attribute on BSE electron image dataset that contains the topography mode used to acquire that image with Unity systems
   * Add the ability to export spectral data both EDS smartMaps and EDS smartLines.
+  * Add Scan Rotation dataset to the Common Header group
 * 6.0
   * Add support for Unity, including export of multidetector systems with Unity and an auxillary detector.
 * 5.0
@@ -198,6 +203,7 @@ Analysis Unique Identifier | | H5T_STRING | (1, 1) | Unique identifier of this a
 Magnification | | H5T_NATIVE_FLOAT | (1, 1) |
 Beam Voltage | | H5T_NATIVE_FLOAT | (1, 1) | In kilovolts
 Working Distance | | H5T_NATIVE_FLOAT | (1, 1) | Working distance of microscope (in millimeters)
+Scan Rotation | | H5T_NATIVE_FLOAT | (1, 1) | In radians <br>:label: New in version 7.0
 Tilt Angle | | H5T_NATIVE_FLOAT | (1, 1) | Tilt angle of sample (either from stage tilt or pre-tilted holder)
 Tilt Axis | | H5T_NATIVE_FLOAT | (1, 1) | 0 for x-axis, &pi;/2 for y-axis
 X Cells | yes | H5T_NATIVE_INT32 | (1, 1) | Map: Width in pixels.<br>Line scan: Length in pixels.
@@ -278,10 +284,13 @@ Pattern Center Y | | H5T_NATIVE_FLOAT | (size, 1) | Pattern center Y position sc
 Detector Distance | | H5T_NATIVE_FLOAT | (size, 1) | Detector distance scaled to the width of the image.
 Beam Position X | | H5T_NATIVE_FLOAT | (size, 1) | X position of the beam in the real-world (in micrometers). The origin is in the center of the image, and a mathematical Y axis that is positive when going from bottom to top
 Beam Position Y | | H5T_NATIVE_FLOAT | (size, 1) | Y position of the beam in the real-world (in micrometers). The origin is in the center of the image, and a mathematical Y axis that is positive when going from bottom to top
-Unprocessed Patterns | | H5T_NATIVE_INT16 | (size, height, width) | Raw patterns without any background subtraction. The 2nd and 3rd dimension of the dataset correspond to the correspond to the height and width of the patterns, respectively. They also match the **Pattern Height** and **Pattern Width** datasets in the Header. This dataset uses [LZF compression](https://portal.hdfgroup.org/display/support/HDF5+Filter+Plugins). <br>:label: New in version 5.0
-Processed Patterns | | H5T_NATIVE_UINT8 | (size, height, width) | Patterns after background subtraction. See **Static Background Correction** and **Auto Background Correction** datasets in the Header. The 2nd and 3rd dimension of the dataset correspond to the correspond to the height and width of the patterns, respectively. They also match the **Pattern Height** and **Pattern Width** datasets in the Header. This dataset uses [LZF compression](https://portal.hdfgroup.org/display/support/HDF5+Filter+Plugins). <br>:label: New in version 5.0
+Unprocessed Patterns | | H5T_NATIVE_INT16 | (size, height, width) | Raw patterns without any background subtraction. The 2nd and 3rd dimension of the dataset correspond to the correspond to the height and width of the patterns, respectively. They also match the **Pattern Height** and **Pattern Width** datasets in the Header. This dataset used [LZF compression](https://portal.hdfgroup.org/display/support/HDF5+Filter+Plugins) in versions 5.0 to 7.0. <br>:label: New in version 5.0
+Processed Patterns | | H5T_NATIVE_UINT8 | (size, height, width) | Patterns after background subtraction. See **Static Background Correction** and **Auto Background Correction** datasets in the Header. The 2nd and 3rd dimension of the dataset correspond to the correspond to the height and width of the patterns, respectively. They also match the **Pattern Height** and **Pattern Width** datasets in the Header. This dataset used [LZF compression](https://portal.hdfgroup.org/display/support/HDF5+Filter+Plugins) in versions 5.0 to 7.0. <br>:label: New in version 5.0
 Unprocessed Virtual Forescatter Detector Images | | H5T_NATIVE_INT16 | (size, height, width) | Raw virtual forescatter detector images without any background subtraction. <br>:label: New in version 7.0
 Processed Virtual Forescatter Detector Images | | H5T_NATIVE_UINT8 | (size, height, width) | Virtual forescatter detector images after background subtraction. <br>:label: New in version 7.0
+LAM Field Coordinate X | | H5T_NATIVE_UINT16 | (size, 1) | Original LAM field (tile) coordinate X for montaged EBSD map. The attribute **Folding Type** specifies the folding method (if any) used to create the montaged data. <br>:label: New in version 8.0
+LAM Field Coordinate Y | | H5T_NATIVE_UINT16 | (size, 1) | Original LAM field (tile) coordinate Y for montaged EBSD map. The attribute **Folding Type** specifies the folding method (if any) used to create the montaged data. <br>:label: New in version 8.0
+LAM Field Index | | H5T_NATIVE_UINT16 | (size, 1) | Original LAM field (tile) index for montaged EBSD map. <br>:label: New in version 8.0
 
 #### <a name="ebsd-header"></a> Header Group Specification
 
@@ -423,7 +432,10 @@ X | | H5T_NATIVE_FLOAT | (size, 1) | X position of each pixel in micrometers (or
 Y | | H5T_NATIVE_FLOAT | (size, 1) | Y position of each pixel in micrometers (origin: top left corner)
 Live Time | yes | H5T_NATIVE_FLOAT | (size, 1) | In seconds
 Real Time | | H5T_NATIVE_FLOAT | (size, 1) | In seconds
-Spectrum | | H5T_NATIVE_INT32 | (size, channels) | Spectrum of each pixel, with the raw intensities in counts. Each pixel spectrum is represented by one row. Data set is 2D even if the spectrum data cube is 3D. See **Number Channels** in the Header for the 2nd dimension. This dataset uses [LZF compression](https://portal.hdfgroup.org/display/support/HDF5+Filter+Plugins). Now available for all EDS data sets <br>:label: New in version 7.0
+Spectrum | | H5T_NATIVE_INT32 | (size, channels) | Spectrum of each pixel, with the raw intensities in counts. Each pixel spectrum is represented by one row. Data set is 2D even if the spectrum data cube is 3D. See **Number Channels** in the Header for the 2nd dimension. This dataset uses [LZF compression](https://portal.hdfgroup.org/display/support/HDF5+Filter+Plugins). Now available for all EDS data maps, linescans and feature data. <br>:label: New in version 7.0
+LAM Field Coordinate X | | H5T_NATIVE_UINT16 | (size, 1) | Original LAM field (tile) coordinate X for montaged EDS map. The attribute **Folding Type** specifies the folding method (if any) used to create the montaged data. <br>:label: New in version 8.0
+LAM Field Coordinate Y | | H5T_NATIVE_UINT16 | (size, 1) | Original LAM field (tile) coordinate Y for montaged EDS map. The attribute **Folding Type** specifies the folding method (if any) used to create the montaged data. <br>:label: New in version 8.0
+LAM Field Index | | H5T_NATIVE_UINT16 | (size, 1) | Original LAM field (tile) index for montaged EDS map. <br>:label: New in version 8.0
 
 #### <a name="eds-header"></a> Header Group Specification ####
 
@@ -485,6 +497,14 @@ Perimeter | | H5T_NATIVE_FLOAT | (1, 1) | The perimeter of the feature, determin
 Shape | | H5T_NATIVE_FLOAT | (1, 1) | A quantified approximation to the shape of the feature, equal to the perimeter squared, divided by 4 * Pi * Area. A shape of 1 corresponds to a perfectly circular feature. More elongated features are represented by greater magnitude values of shape.
 Gray Level Mean | | H5T_NATIVE_FLOAT | (1, 1) | Mean gray level value for the feature.
 
+The Electron Image Data Group may also contain the following datasets.
+
+**Dataset Name** | **Mandatory** | **HDF5 Type** | **Dimension (row, column)** | **Comment**
+--- | --- | --- | --- | ---
+LAM Field Coordinate X | | H5T_NATIVE_UINT16 | (size, 1) | Original LAM field (tile) coordinate X for montaged electron image(s). The attribute **Folding Type** specifies the folding method (if any) used to create the montaged data. <br>:label: New in version 8.0
+LAM Field Coordinate Y | | H5T_NATIVE_UINT16 | (size, 1) | Original LAM field (tile) coordinate Y for montaged electron image(s). The attribute **Folding Type** specifies the folding method (if any) used to create the montaged data. <br>:label: New in version 8.0
+LAM Field Index | | H5T_NATIVE_UINT16 | (size, 1) | Original LAM field (tile) index for montaged electron image(s). <br>:label: New in version 8.0
+
 #### <a name="electronimage-header"></a> Header Group Specification ####
 
 Apart from the [common header specification](#common-header), the Electron Image Header Group contains the following datasets.
@@ -538,6 +558,11 @@ The Data Processing Data Group contains the following datasets, which is a subse
 Phase | yes | H5T_NATIVE_UINT8 | (size, 1) | Index of phase, 0 if not indexed
 Euler | yes | H5T_NATIVE_FLOAT | (size, 3) | Orientation of Crystal (CS2) to Sample-Surface (CS1). See [Definition of Coordinate Systems](#coordinate-systems) for more information.
 Mean Angular Deviation | | H5T_NATIVE_FLOAT | (size, 1) | In radians
+Bands | | H5T_NATIVE_UINT8 | (size, 1) | Number of bands positively indexed
+Error | | H5T_NATIVE_UINT8 | (size, 1) | Error code. Some of these codes are historical and no longer apply. NotAnalyzed=0, Success=1, NoSolution=2, LowBandContrast=3, LowBandSlope=4, HighMAD=5, UnexpectedError=6, Replaced=7
+Pattern Center X | | H5T_NATIVE_FLOAT | (size, 1) | Pattern center X position scaled to the width of the image. This means that an X value of 0.5 is in the middle on the horizontal axis of the image. The origin is in the bottom left corner.
+Pattern Center Y | | H5T_NATIVE_FLOAT | (size, 1) | Pattern center Y position scaled to the width of the image. Note that for a non-square image a Y value of 0.5 is _not_ in the center of the vertical axis of the image. The origin is in the bottom left corner.
+Detector Distance | | H5T_NATIVE_FLOAT | (size, 1) | Detector distance scaled to the width of the image.
 
 #### <a name="dataprocessing-header"></a> Header Group Specification ####
 
