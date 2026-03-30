@@ -203,7 +203,7 @@ Analysis Unique Identifier | | H5T_STRING | (1, 1) | Unique identifier of this a
 Magnification | | H5T_NATIVE_FLOAT | (1, 1) |
 Beam Voltage | | H5T_NATIVE_FLOAT | (1, 1) | In kilovolts
 Working Distance | | H5T_NATIVE_FLOAT | (1, 1) | Working distance of microscope (in millimeters)
-Scan Rotation | | H5T_NATIVE_FLOAT | (1, 1) | Rotation of angle of the scanned area. In radians <br>:label: New in version 7.0
+Scan Rotation | | H5T_NATIVE_FLOAT | (1, 1) | Rotation of angle of the scanned area (in radians). <br>:label: New in version 7.0
 Tilt Angle | | H5T_NATIVE_FLOAT | (1, 1) | Tilt angle of sample (either from stage tilt or pre-tilted holder)
 Tilt Axis | | H5T_NATIVE_FLOAT | (1, 1) | 0 for x-axis, &pi;/2 for y-axis
 X Cells | yes | H5T_NATIVE_INT32 | (1, 1) | Map: Width in pixels.<br>Line scan: Length in pixels.
@@ -282,8 +282,8 @@ Pattern Quality | | H5T_NATIVE_FLOAT | (size, 1) |
 Pattern Center X | | H5T_NATIVE_FLOAT | (size, 1) | Pattern center X position scaled to the width of the image. This means that an X value of 0.5 is in the middle on the horizontal axis of the image. The origin is in the bottom left corner.
 Pattern Center Y | | H5T_NATIVE_FLOAT | (size, 1) | Pattern center Y position scaled to the width of the image. Note that for a non-square image a Y value of 0.5 is _not_ in the center of the vertical axis of the image. The origin is in the bottom left corner.
 Detector Distance | | H5T_NATIVE_FLOAT | (size, 1) | Detector distance scaled to the width of the image.
-Beam Position X | | H5T_NATIVE_FLOAT | (size, 1) | X position of the beam in the real-world (in micrometers). The origin is in the center of the image, and a mathematical X axis that is positive when going from left to right
-Beam Position Y | | H5T_NATIVE_FLOAT | (size, 1) | Y position of the beam in the real-world (in micrometers). The origin is in the center of the image, and a mathematical Y axis that is positive when going from bottom to top
+Beam Position X | | H5T_NATIVE_FLOAT | (size, 1) | X position of the beam in the real-world (in micrometers). The origin is in the center of the image, and a mathematical X axis that is positive when going from left to right.
+Beam Position Y | | H5T_NATIVE_FLOAT | (size, 1) | Y position of the beam in the real-world (in micrometers). The origin is in the center of the image, and a mathematical Y axis that is positive when going from bottom to top.
 Unprocessed Patterns | | H5T_NATIVE_INT16 | (size, height, width) | Raw patterns without any background subtraction. The 2nd and 3rd dimension of the dataset correspond to the correspond to the height and width of the patterns, respectively. They also match the **Pattern Height** and **Pattern Width** datasets in the Header. This dataset used [LZF compression](https://portal.hdfgroup.org/display/support/HDF5+Filter+Plugins) in versions 5.0 to 7.0. <br>:label: New in version 5.0
 Processed Patterns | | H5T_NATIVE_UINT8 | (size, height, width) | Patterns after background subtraction. See **Static Background Correction** and **Auto Background Correction** datasets in the Header. The 2nd and 3rd dimension of the dataset correspond to the correspond to the height and width of the patterns, respectively. They also match the **Pattern Height** and **Pattern Width** datasets in the Header. This dataset used [LZF compression](https://portal.hdfgroup.org/display/support/HDF5+Filter+Plugins) in versions 5.0 to 7.0. <br>:label: New in version 5.0
 Unprocessed Virtual Forescatter Detector Images | | H5T_NATIVE_INT16 | (size, height, width) | Raw virtual forescatter detector images without any background subtraction. <br>:label: New in version 7.0
